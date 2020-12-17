@@ -100,16 +100,16 @@ pkg-load () {
         done
 
         # got_error
-        local err=0
-        local i=0
-        for pid in ${_PKG_LOADING_PIDS[@]}; do
-            ((i++))
-            wait "$pid";
-            err=$?
-            if (( $err > 0 )); then
-                echo "\n\npkg:ERROR loading ${err}\n\n"
-            fi
-        done
+        # local err=0
+        # local i=0
+        # for pid in ${_PKG_LOADING_PIDS[@]}; do
+        #     ((i++))
+        #     wait "$pid";
+        #     err=$?
+        #     if (( $err > 0 )); then
+        #         echo "\n\npkg:ERROR loading ${err}\n\n"
+        #     fi
+        # done
     } always {
         popd
     }
@@ -143,9 +143,11 @@ _pkg-load ()
             echo "pkg-needs-init" $1
             pkg-needs-init "$1"
             if (( $? == 1 )) ; then
+                alias @="pkg ${1}"
+                __init__
                 # eval "@ () { pkg ${1} \$argv }"
                 # export -f @
-                $(__init__) &
+                # $(__init__) &
                 _PKG_LOADING_PIDS+=($!)
                 # unset -f @
             fi

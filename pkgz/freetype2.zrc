@@ -4,7 +4,7 @@
 pkg\ freetype2 () {
 
     __init__ () {
-        git clone git://git.sv.nongnu.org/freetype/freetype2.git freetype2
+        git clone https://github.com/freetype/freetype2.git
     }
 
     : wd "$PWD"/freetype2
