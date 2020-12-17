@@ -1,0 +1,13 @@
+
+fs-nt ()
+{
+    local tgt="$1"; shift;
+    while [[ "$tgt" -nt "$1" ]]; do shift; done;
+    return $#argv;
+}
+fs-ot ()
+{
+    local tgt="$1"; shift;
+    while [[ "$tgt" -ot "$1" ]]; do shift; done;
+    return $#argv;
+}

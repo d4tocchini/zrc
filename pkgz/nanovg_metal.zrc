@@ -1,0 +1,16 @@
+
+pkg\ nanovg_metal () {
+
+    __init__ () {
+        git clone https://github.com/d4tocchini/nanovg_metal
+    }
+
+    : wd "$PWD"/nanovg_metal
+    \ +lflags () {
+        soa+ lflags -framework Metal
+    }
+    \ +cflags () {
+        soa+ cflags -fobjc-arc
+        # "-I${wd}/src"
+    }
+}

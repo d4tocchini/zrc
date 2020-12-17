@@ -1,0 +1,49 @@
+
+pkg\ emsdk () {
+
+    __init__() {
+        # macos deps: Xcode Command Line Tools, git, cmake
+        git clone "https://github.com/emscripten-core/emsdk.git"
+        pushd emsdk
+        pkg emsdk pull
+        popd emsdk
+    }
+
+    # NOTE: If you change the location of the SDK (e.g. take it to another computer on an USB):
+    #   re-run the `./emsdk activate latest` and `source ./emsdk_env.sh`
+
+    : wd "$PWD"/emsdk
+    \ pull() {
+        # Fetch the latest version of the emsdk (not needed the first time you clone)
+        git pull
+        # Download and install the latest SDK tools.
+        ./emsdk install latest
+        emsdk use
+    }
+
+    \ use() {
+        # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+        ./emsdk activate latest
+        # Activate PATH and other environment variables in the current terminal
+        source ./emsdk_env.sh
+    }
+
+    \ update() {
+        # Fetch the latest registry of available tools.
+        ./emsdk update
+        # Download and install the latest SDK tools.
+        ./emsdk install latest
+        # Set up the compiler configuration to point to the "latest" SDK.
+        ./emsdk activate latest
+        # Activate PATH and other environment variables in the current terminal
+        source ./emsdk_env.sh
+    }
+
+    \ cc() {
+        emcc -v $argv
+    }
+
+    \ verify() {
+        emcc -v
+    }
+}

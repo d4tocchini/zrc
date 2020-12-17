@@ -1,0 +1,10 @@
+
+pkg\ simd () {
+
+    __init__ () {
+        git clone https://github.com/d4tocchini/simd.git
+    }
+
+    : wd "$PWD"/simd
+
+}

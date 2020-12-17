@@ -1,0 +1,26 @@
+
+pkg\ lg () {
+
+    __init__ () {
+        git clone https://github.com/d4tocchini/lg.git
+        pkg lg pull
+    }
+
+    \ pull () {
+        git checkout lg-d4
+        git pull
+    }
+
+    : wd "$PWD"/lg
+    \ +lflags () {
+        soa+ lflags -lz -pthread -L"$PWD" -llemongraph
+    }
+    \ +cflags () {
+        soa+ cflags -I"$PWD"/lib -I"$PWD"/deps/lmdb/libraries/liblmdb \
+            -fPIC -Wunused-variable -Wunused-but-set-variable
+            # -O3 -Wall
+    }
+    \ make () {
+        make $argv
+    }
+}

@@ -1,0 +1,59 @@
+
+pkg\ tcc () {
+
+    __init__ () {
+        git clone https://github.com/d4tocchini/tcc.git
+        pushd tcc
+            git checkout mob
+            git pull
+            git remote add up git://repo.or.cz/tinycc.git
+        popd
+    }
+
+    : wd "$PWD"/tcc
+    \ +lflags () {
+        soa+ lflags -L"${USR}/lib" -ltcc
+            # -lc -ldl -lz
+    }
+    \ +cflags () {
+        # TODO: -I/usr/tcc/include
+        # soa+ cflags -I"${USR}/include"
+    }
+    \ help () {
+        echo "tcc configure , make , install   "
+        echo
+        echo "By default, tcc is installed in `/usr/local/bin`."
+        echo "`./configure --help`  shows configuration options."
+    }
+    \ configure () {
+        # if ((_DARWIN_)) &&
+        #     argv+=--sysincludepaths="${MACOS_SDK_PATH}/usr/include:{B}/include"
+            # :${PREFIX}/include:${PREFIX}/lib/tcc/include
+        CC=clang $CONFIGURE $argv
+    }
+    \ make () {
+        CC=clang $MAKE $argv
+    }
+    \ install () {
+        $MAKE install $argv
+        echo "#!/bin/sh" > "$USR"/bin/tccrun
+        echo "exec "$USR"/bin/tcc -run \${@}" >> "$USR"/bin/tccrun
+        chmod +x "$USR"/bin/tccrun
+        echo "-> \"$USR/bin\" : tccrun"
+        # -> "$USR/bin" : tcc
+        # -> "$USR/lib/tcc" : libtcc1.a bcheck.o bt-exe.o bt-log.o
+        # -> "$USR/lib/tcc/include" : ./include/*.h ./tcclib.h
+        # -> "$USR/lib" : libtcc.a
+        # -> "$USR/include" : ./libtcc.h
+        # -> "$USR/share/man/man1" : tcc.1
+        # -> "$USR/share/info" : tcc-doc.info
+        # -> "$USR/share/doc" : tcc-doc.html
+    }
+    \ test () {
+        $MAKE test $argv
+    }
+    \ clean () {
+        rm -f "./config.mk"
+        $MAKE clean $argv
+    }
+}

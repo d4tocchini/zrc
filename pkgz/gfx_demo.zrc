@@ -1,0 +1,79 @@
+
+pkg\ gfx_demo () {
+    # req gfx
+
+    __init__ () {
+        git clone https://github.com/d4tocchini/gfx_demo.git
+    }
+
+    : wd "$PWD/gfx_demo"
+    : TARGETS "1 2 3 4 5 6 7"
+    : 1 "./1_hello.c"
+    : 2 "./2_nvg.c"
+    : 3 "./3_r.c"
+    : 4 "./4_mu.c"
+    : 5 "./5_lg.c"
+    : 6 "./6_tcc.c"
+    : 7 "./7_via.c"
+    \ 1 () {
+        soa: cflags lflags
+        gfx +cflags , +lflags
+        CC $cflags $lflags -o $cmd $argv
+    }
+    \ 2 () {
+        soa: cflags lflags
+        gfx +cflags , +lflags
+        CC $cflags $lflags -o $cmd $argv
+    }
+    \ 3 () {
+        soa: cflags lflags
+        gfx +cflags , +lflags
+        microui +cflags
+        CC $cflags $lflags -o $cmd $argv
+    }
+    \ 4 () {
+        soa: cflags lflags
+        gfx +cflags , +lflags
+        microui +cflags
+        CC $cflags $lflags -o $cmd $argv
+    }
+    \ 5 () {
+        soa: cflags lflags
+        gfx +cflags , +lflags
+        microui +cflags
+        lg +cflags , +lflags
+        CC $cflags $lflags -o $cmd $argv
+    }
+    \ 6 () {
+        soa: cflags lflags
+        gfx +cflags , +lflags
+        tcc +cflags , +lflags
+        lg +cflags , +lflags
+        CC $cflags $lflags -o $cmd $argv
+    }
+    \ 7 () {
+        soa: cflags lflags
+        gfx +cflags , +lflags
+        microui +cflags
+        # lg +cflags , +lflags
+        local ofile=$cmd;
+        if ((_WASM_)); then
+            ofile="$ofile".html
+        fi
+        CC $cflags $lflags -o $ofile $argv
+    }
+
+    \ build () {
+        # (($#argv)) || argv=`@ : TARGETS`
+        # local tgt
+        # local deps
+        # while (($#argv)); do
+        #     tgt=$1; shift;
+        #     deps=(`@ : $tgt`)
+        #     $CC $cflags $lflags -o $tgt
+        # done
+    }
+    \ clean () {
+        rm -rf `@ : TARGETS`
+    }
+}

@@ -1,0 +1,55 @@
+export
+
+CC_TGT
+
+export _ENV_="dev"
+export _GFX_="native"
+
+BUILD:rectify () {
+    if [[]]
+}
+
+export CC_O=3
+export CC_DEV=0
+export CC_GFX_WEBGL=0;
+export CC_GFX_GL=0;
+export CC_METAL=0;
+export CC_MACOS=0;
+
+pkg\ BUILD () {
+    : wd
+
+    \ set-env () {
+        case $1 in
+            DEV*)
+                CC_DEV=1;
+            ;;
+            PRO*)
+                CC_DEV=0;
+            ;;
+        esac
+    }
+    \ set-gfx () {
+        case $1 in
+            WEBGL2)
+                CC_GFX_WEBGL=2
+                CC_GFX_GL=0
+                CC_GFX_METAL=0
+            ;;
+            GL33)
+                CC_GFX_WEBGL=0
+                CC_GFX_GL=33
+                CC_GFX_METAL=0
+            ;;
+            METAL)
+                CC_GFX_WEBGL=0
+                CC_GFX_GL=0
+                CC_GFX_METAL=1
+            ;;
+        esac
+    }
+    \ cc () {
+
+    }
+}
+

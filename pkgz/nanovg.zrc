@@ -1,0 +1,30 @@
+
+pkg\ nanovg () {
+
+    __init__ () {
+        git clone https://github.com/d4tocchini/nanovg
+        pushd nanovg
+            git checkout d4
+            git pull
+        popd
+    }
+
+    : wd "$PWD"/nanovg
+    \ +lflags () {
+        pkg "freetype2" +lflags
+    }
+     \ +cflags () {
+        soa+ cflags "-I${wd}/src" "-I${wd}"  \
+            -D_CRT_SECURE_NO_WARNINGS \
+            -DFONS_USE_FREETYPE
+        pkg "freetype2" +cflags
+    }
+    # TODO: # : csrc "${wd}/src/nanovg.c"
+    \ install () {
+        rm -rf "${USR}/include/nanovg"
+        mkdir -p "${USR}/include/nanovg"
+        cp ./src/*.h "${USR}/include/nanovg"
+        cp ./src/*.c "${USR}/include/nanovg"
+    }
+}
+

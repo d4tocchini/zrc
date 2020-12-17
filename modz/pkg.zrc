@@ -1,0 +1,378 @@
+export cmd
+export wd
+export PKG
+export PKG_STK=()
+export PKG_FILENAME="pkg.sh"
+export PKG_LS_OPTS="-I 'node_modules' -I '.*' -I 'zzz*' -I '_*' -I 'build'"
+export PKG_FILE=""
+export PKGS=""
+export PKG_WD=""
+export PKG_RUNNING=""
+export PKG_DEBUG=0
+export PKG_OUTSEP="  "
+export OS_NAME=$(uname -s)
+export _DARWIN_ _MACOS_ _IOS_ _LINUX_ _WINDOWS_ _ANDROID_
+
+# To remove element number $i: a=("${(@)a[1,$i-1]}" "${(@)a[$i+1,$#a]}")
+# To remove any occurence of b: a=("${(@)a:#b}")
+    # :# is the hieroglyph to remove matching elements; "" and (@) is to operate correctly on arrays even if they contain empty elements.
+
+# ----------------------------------------------------
+
+[ $OS_NAME = "Darwin" ] ; (( _DARWIN_ = $? ^ 1 )) ;
+
+# ----------------------------------------------------
+
+
+
+alias void="builtin :"
+
+
+
+# ----------------------------------------------------
+
+export PKGWD=""
+export PKGZ_DIR="${ZRC_DIR}/pkgz"
+
+pkg-mount () {
+    mkdir -p "$1"
+    PKGWD="`realpath ${1}`"
+}
+
+pkg-needs-init () {
+    if [[ -d "${PKGWD}/${1}" ]] ; then
+        return 0;
+    else
+        return 1;
+    fi
+}
+
+pkg-reload () {
+
+}
+
+_PKG_LOADING_PIDS=()
+
+pkg-load () {
+    ":" ()
+    {
+        print "\t\t: $1"
+        (($#argv)) && {
+            local key="$1";
+            shift;
+            eval "pkg_${_NAME_}[$key]=\"$argv\";"
+        } || void
+    }
+
+    name: ()
+    {
+        print "\t$1"
+        _NAME_="$1"
+        # alias :="pkg:_set ${_NAME_}"
+        type "pkg_${_NAME_}" >/dev/null &&
+            unset -f "pkg_${_NAME_}";
+
+        eval "[ \${#pkg_${_NAME_}} ] && unset \"pkg_${_NAME_}\"";
+        typeset -gA "pkg_${_NAME_}";
+
+        : name "$_NAME_"
+        # : wd "$PKGWD"
+
+        DEBUG "...pkg:BEGIN pkg_${_NAME_}"
+        eval \
+"' :'()
+{
+    local val=\"\$pkg_${_NAME_}[\$1]\";
+    (( \$#val )) &&
+    {
+      echo -n \"\$val\"
+    };
+}"
+    }
+
+    PKGS=""
+
+    pushd "$PKGWD"
+    {
+        while (($#argv)) ; do
+            _pkg-load "$1"
+            shift
+        done
+
+        # got_error
+        local err=0
+        local i=0
+        for pid in ${_PKG_LOADING_PIDS[@]}; do
+            ((i++))
+            wait "$pid";
+            err=$?
+            if (( $err > 0 )); then
+                echo "\n\npkg:ERROR loading ${err}\n\n"
+            fi
+        done
+    } always {
+        popd
+    }
+
+
+
+    # ls -1 ${1}/**/"${PKG_FILENAME}" ${=PKG_LS_OPTS} | while read -r p;
+    # do
+    #     _pkg-load-file "$p" # &&  tput rc;tput el             # rc = restore cursor, el = erase to end of line
+    # done
+    echo "|\npkg [" ${=PKGS} "]"
+    unset -f ":"
+    unset -f "name:"
+}
+
+_pkg-load ()
+{
+    local PKGZ_FILE="${PKGZ_DIR}/${1}.zrc"
+    {
+        print "+ \"$PKGZ_FILE\" "
+        unset -f __init__ 2>/dev/null
+
+        source "$PKGZ_FILE"
+
+        __pkg-process-defs
+
+        type __init__ >/dev/null
+
+        echo "pkg-has-init" $1 " PWD=" $PWD
+        if (( $? == 0 )) ; then
+            echo "pkg-needs-init" $1
+            pkg-needs-init "$1"
+            if (( $? == 1 )) ; then
+                # eval "@ () { pkg ${1} \$argv }"
+                # export -f @
+                $(__init__) &
+                _PKG_LOADING_PIDS+=($!)
+                # unset -f @
+            fi
+            unset -f __init__ 2>/dev/null
+        fi
+
+    } always {
+        (( TRY_BLOCK_ERROR = 0 ))
+        # print "❌"
+    }
+    return $?
+}
+
+pkg ()
+{
+    # tput sc                                 # save cursor
+
+    (( $# == 0 )) || [ $1 = "-h" ] &&
+    {
+        pkg-help
+        return $?
+    };
+
+    # push pkg stack
+    local _cmd=$cmd
+    PKG="$1"                    # current pkg name
+    PKG_STK=($PKG $PKG_STK)
+    alias @="pkg $PKG"
+
+    # TODO: req $PKG
+
+    local pk="pkg_$1"
+    local cl=("$pk")
+    shift;
+    if (($#argv == 0)) ; then
+        argv=(help)
+    fi
+    for a in $argv;
+    do
+        if [[ $a == "," ]] ; then
+            ${cl}
+            echo -n "$PKG_OUTSEP"
+            cl=("$pk")
+        else
+            if (( $#cl == 1 )) ; then
+                cmd=$a
+                # cl+="$a"
+                # continue
+            elif [[ $a == ":" ]] ; then
+                ${cl}
+                echo -n "$PKG_OUTSEP"
+                cl=("$pk")
+            fi
+            cl+="$a"
+        fi
+    done
+    ${cl}                           # ??? [ ${args} ] &&
+    local r=$?
+    # pop pkg stack
+    cmd=$_cmd
+    PKG_STK=($PKG_STK[2,-1])
+    (( $#PKG_STK > 0 )) &&
+    {
+        PKG=$PKG_STK[1]
+        alias @="pkg $PKG"
+    }
+    return r
+}
+
+
+# ----------------------------------------------------
+pkg:proto:run ()
+{
+    echo $PWD
+    ./"${1}" $argv[2,-1]
+}
+pkg:proto:make ()
+{
+    (( $#argv == 0 )) && argv=(`@ : TARGETS`);
+    (( $#argv )) &&
+    {
+        # local wd=`@ : wd`
+        local tgt
+        # local tgtf
+        local deps
+        while (( $#argv ));
+        do
+            tgt=$1;
+            shift;
+            deps=(`@ : $tgt`)
+            if (( $#deps )) ; then
+# TODO: ?should we loop over deps for more MakeFile compat?
+                if [ ! -f "${tgt}" ] || fs-ot "${tgt}" ${deps} ; then
+                    @ ${tgt} ${deps}
+                else
+                    echo unchanged: $tgt
+                fi
+            else
+                @ ${tgt}
+            fi
+        done
+    }
+}
+
+# ----------------------------------------------------
+
+pkg-help ()
+{
+    echo "Usage: pkg --libs,--cflags PKG1 PKG2"
+}
+
+pkg-popd () {
+    popd -q
+    wd="$PWD"
+}
+
+pkg-pushd ()
+{
+    eval "pushd -q  \"\$pkg_${1}[wd]\""
+    wd="$PWD"
+}
+
+
+pkg-libs ()                             # pkg --libs pkg1 pkg2 ...
+{
+    local o=""
+    for _name_ in "$@";
+    do
+        eval " o+=\"\$pkg_${_name_}_libs \"; "
+    done
+    echo $o
+}
+
+pkg-cflags ()                           # pkg --cflags pkg1 pkg2 ...
+{
+    local o=""
+    for _name_ in "$@";
+    do
+        eval " o+=\"\$pkg_${_name_}_cflags \"; "
+    done
+    echo $o
+}
+
+# ----------------------------------------------------
+
+__pkg-process-defs ()
+{
+
+    for f in ${(k)functions};
+    do
+        [[ "$f" =~ (^pkg[ ][^ ]+) ]] &&
+        {
+            local fn="$f"
+            ___pkg-def ${=f}
+# TODO:
+            unset -f "$fn"
+            # functions[$fn]=""
+        }
+    done
+}
+
+___pkg-def ()
+{
+    _pkg:BEGIN "$1" "$2"
+    for f in ${(k)functions};
+    do
+        [[ "$f" =~ (^[ ][^ ]+) ]] &&
+        {
+            argv=(${=f})
+            print "\t\t$1 ()"
+            functions[__${_NAME_}_${1}]="$functions[${f}]"
+            unset "functions[$f]"
+        }
+    done
+
+    alias "$_NAME_"="pkg $_NAME_"
+                                    #TODO: throw / catch http://info2html.sourceforge.net/cgi-bin/info2html-demo/info2html?(zsh)Exception%2520Handling#:~:text=Note%20that%20as%20exceptions%20are,name%20of%20the%20exception%20caught.
+    functions[pkg_${_NAME_}]="
+    pkg-pushd \"${_NAME_}\"
+    local r=1
+    if (( \$#functions[__${_NAME_}_\$1] )) ; then
+        \"__${_NAME_}_\$1\" \$argv[2,-1]
+        r=\$?
+    elif (( \$#argv )) ; then
+        if which \"pkg:proto:\$1\" >/dev/null ; then
+            \"pkg:proto:\$1\" \$argv[2,-1]
+            r=\$?
+        else
+            echo ERROR: ${_NAME_}: cmd \"\$1\" not found
+        fi
+    fi
+    pkg-popd
+    return \$r
+"
+    _pkg:END
+}
+
+_pkg:BEGIN ()
+{
+    DEBUG "pkg:BEGIN"
+    _NAME_=""
+    name: "$2"
+    "$1 $2"
+}
+
+_pkg:END ()
+{
+    DEBUG "pkg:END"
+    PKGS="$PKGS $_NAME_"
+    unset _NAME_
+}
+
+# ----------------------------------------------------
+
+prin () {
+    echo -n " " $@
+}
+
+DEBUG () {
+    (( $PKG_DEBUG > 0 )) && print "// $@"
+}
+
+# ====================================================
+# ====================================================
+# [[ $1 == "pkgz" ]] && argv=(./)
+# pkgz $argv
+# (($#argv)) || $argv=(./)
+
+# ====================================================
+# ====================================================

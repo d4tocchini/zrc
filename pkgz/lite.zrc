@@ -1,0 +1,64 @@
+
+pkg\ lite () {
+
+    __init__ () {
+        git clone https://github.com/d4tocchini/lite.git
+        pushd -q lite
+            git checkout d4
+            git pull
+        popd -q
+    }
+
+    : wd "$PWD"/lite
+    \ +cflags-src () {
+        soa+ cflags \
+            "-DLUA_USE_POSIX" \
+            "-I${PWD}/src"
+    }
+    \ build-lua () {
+        soa: cflags lflags
+        gfx +cflags , +lflags
+        lite +cflags-src
+
+        local PIDS=()
+        pushd src/lib
+        rm *.o
+        for f in `find lua52 -name "*.c"`; do
+            # $CC -c $cflags $f -o "${f//\//_}.o" &
+            CC -c $cflags $f -o "${f//\//_}.o" &
+            PIDS+=($!)
+        done
+
+        local got_error=0
+        for pid in ${PIDS[@]}; do
+            wait "$pid"
+            if [[ $? -ne 0 ]]; then
+                got_error=1
+            fi
+        done
+        popd
+
+        $got_error && echo got_error
+        return $got_error
+    }
+    \ build () {
+        soa: cflags lflags
+        gfx +cflags , +lflags
+        lite +cflags-src
+
+        local OUT=lited
+        rm -f $OUT
+
+        # if [[ $got_error == false ]]; then
+            echo "linking..." $PWD
+            CC src/lib/*.o $lflags $cflags -o $OUT ./src/main.c
+        # fi
+
+        echo "cleaning up..."
+        # rm *.o
+        rm res.res 2>/dev/null
+        echo "done"
+
+        # CC $cflags $lflags -o lited ./src/main.c
+    }
+ }

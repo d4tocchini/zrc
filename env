@@ -1,0 +1,12 @@
+export ZRC_DIR="${PWD}/zrc"
+export MODZ_DIR="${ZRC_DIR}/modz"
+mod () {
+    source "${MODZ_DIR}/${1}.zrc"
+}
+
+echo "zrc/env mods"
+mod fs
+mod soa
+mod cc
+mod pkg
+

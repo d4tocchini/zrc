@@ -1,0 +1,10 @@
+
+pkg\ stb () {
+
+    __init__ () {
+        git clone https://github.com/d4tocchini/stb.git
+    }
+
+    : wd "$PWD"/stb
+
+}

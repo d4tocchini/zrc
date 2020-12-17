@@ -1,0 +1,56 @@
+
+pkg\ gfx () {
+
+    __init__ () {
+        git clone https://github.com/d4tocchini/gfx.git
+    }
+
+    : wd "$PWD"/gfx
+
+    \ +cflags () {
+        # modz +cflags "sdl2" "nanovg" "nanovg_metal"
+        pkg "sdl2"      +cflags
+        pkg "nanovg"       +cflags
+        if ((_WASM_)); then
+            # ...
+        elif ((_DARWIN_)); then
+            pkg "nanovg_metal" +cflags
+            soa+ cflags "-ObjC" \
+                "-D_NATIVE_OBJC_EXCEPTIONS" \
+                "-mmacosx-version-min=10.13"
+        else
+            soa+ cflags "-no-pie"
+        fi
+        # soa+ cflags
+
+    }
+    \ +lflags () {
+        pkg "sdl2"      +lflags
+        pkg "nanovg"    +lflags
+        if ((_WASM_)); then
+            # ...
+        elif if ((_DARWIN_)); then
+            pkg "nanovg_metal" +lflags
+            soa+ lflags \
+                -lobjc \
+                -framework Foundation \
+                -framework AppKit \
+                -framework QuartzCore \
+                -framework Cocoa \
+                -framework Metal \
+                -framework OpenGL \
+                -lGLEW
+        else
+            soa+ lflags \
+                    -lGL -lGLU -lGLEW
+        fi
+    }
+    \ build () {
+        echo hello $1
+    }
+    \ install () {
+        rm -rf "${USR}/include/gfx"
+        mkdir -p "${USR}/include/gfx"
+        cp ./*.h "${USR}/include/gfx"
+    }
+}

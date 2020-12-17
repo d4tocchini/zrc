@@ -1,0 +1,52 @@
+
+# TODO: sdl2_image https://www.libsdl.org/projects/SDL_image/
+pkg\ sdl2 () {
+
+    __init__ () {
+        git clone https://github.com/d4tocchini/SDL2.git
+        pushd SDL2
+            git checkout d4
+            git pull
+        popd
+    }
+
+    : wd "$PWD"/SDL2
+    \ +lflags () {
+        if ((! _WASM_)) ; then
+            soa+ lflags \
+            `pkg-config --libs SDL2` \
+            "-lm"
+            #"-lSDL2_image"
+        fi
+    }
+    \ +cflags () {
+        if ((_WASM_)) ; then
+            soa+ cflags -s USE_SDL=2
+                #-s USE_SDL_IMAGE=2
+        else
+            soa+ cflags `pkg-config --cflags SDL2`/..
+        fi
+
+    }
+    \ configure () {
+        echo configure
+        if ((_DARWIN_)) ; then
+            ./autogen.sh
+            CC=clang CXX=clang++ MAKE=gmake ./configure --without-x;
+        else
+            ./configure;
+        fi
+    }
+    \ build () { # --prefix=
+        echo build
+        gmake -j $@ || {
+            gmake clean
+            gmake -j $@
+        }
+    }
+    \ install () { # --prefix=
+        echo install
+        gmake install
+    }
+}
+

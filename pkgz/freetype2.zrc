@@ -1,0 +1,37 @@
+
+
+
+pkg\ freetype2 () {
+
+    __init__ () {
+        git clone git://git.sv.nongnu.org/freetype/freetype2.git freetype2
+    }
+
+    : wd "$PWD"/freetype2
+    # \ help () {
+    #     echo "freetype2"
+    #     echo "releases: https://download.savannah.gnu.org/releases/freetype/"
+    # }
+    \ +lflags () {
+        if ((! _WASM_)) ; then
+            soa+ lflags `pkg-config --libs freetype2`
+        fi
+    }
+    \ +cflags () {
+        if ((_WASM_)) ; then
+            soa+ cflags -s USE_FREETYPE=1
+        else
+            soa+ cflags `pkg-config --cflags freetype2`
+        fi
+    }
+    \ configure () {
+        sh autogen.sh
+        $CONFIGURE $argv
+    }
+    \ make () {
+        gmake
+    }
+    \ install () {
+        gmake install
+    }
+}

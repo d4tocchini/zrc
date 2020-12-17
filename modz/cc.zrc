@@ -1,0 +1,108 @@
+
+export MAKE=gmake
+
+# zshcc () {
+#     [[ ! -f "$1.zwc" ]] || [[ "$1" -nt "$1.zwc" ]] && zcompile $1
+# }
+
+if ((_DARWIN_)) ; then
+    CC=clang
+    CXX=clang++
+    MAKE=gmake
+    MACOS_SDK_PATH="`xcrun --show-sdk-path`"
+    export MACOSX_DEPLOYMENT_TARGET=10.12
+    # [ -d /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/ ] && {
+    #     /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/
+    # }
+    # -flat_namespace
+    # see tcc,,,
+
+    # sudo rm -rf /Library/Developer/CommandLineTools
+    # xcode-select --install
+else
+    CC=gcc
+    CXX=g++
+fi
+
+# https://stackoverflow.com/questions/61986265/why-gcc-mcmodel-large-adds-an-offset-to-the-function-call-even-with-no-pie-fla
+# -fpic vs -fPIC
+    # When generating code for shared libraries, -fpic implies -msmall-data and -fPIC implies -mlarge-data.
+    # -msmall-data -mlarge-data http://man7.org/linux/man-pages/man1/gcc.1.html
+    #    When -mexplicit-relocs is in effect, static data is accessed via
+    #    gp-relative relocations.  When -msmall-data is used, objects 8
+    #    bytes long or smaller are placed in a small data area (the
+    #    ".sdata" and ".sbss" sections) and are accessed via 16-bit
+    #    relocations off of the $gp register.  This limits the size of the
+    #    small data area to 64KB, but allows the variables to be directly
+    #    accessed via a single instruction.
+
+    #    The default is -mlarge-data.  With this option the data area is
+    #    limited to just below 2GB.  Programs that require more than 2GB
+    #    of data must use "malloc" or "mmap" to allocate the data in the
+    #    heap instead of in the program's data segment.
+
+    #    When generating code for shared libraries, -fpic implies
+    #    -msmall-data and -fPIC implies -mlarge-data.
+
+    # Compiling position-independent code when not necessary is a performance drag on some platforms (most notably, the register-starved x86 architecture, because PIC takes away a register that can be used more freely when non-PIC), but there should be no detrimental effects otherwise.
+
+# -no-pie
+#   is only a linker option
+#   Don’t produce a dynamically linked position independent executable.
+# -fno-pic or -fno-pie are code-gen options.
+# -fpic
+    # Position Independent Code means that the generated machine code is not dependent on being located at a specific address in order to work.
+    # E.g. jumps would be generated as relative rather than absolute.
+    # code compiled with -fPIC, it's suitable for inclusion in a library
+    # Code that is built into shared libraries should normally be position-independent code, so that the shared library can readily be loaded at (more or less) any address in memory
+# OFLAGS+="-no-pie"
+
+# -O3
+# -pipe
+
+OFLAGS=()
+CC_SET_OFLAGS () {
+    if ((_WASM_)); then
+        OFLAGS=(-std=gnu2x --memory-init-file 1 -s MIN_WEBGL_VERSION=2 -s USE_WEBGL2=1 -s MAX_WEBGL_VERSION=2 -s FULL_ES3=1)
+        OFLAGS+=(-s ALLOW_MEMORY_GROWTH=1)
+        OFLAGS+="-fno-pic"
+        OFLAGS+="-fno-pie"
+        OFLAGS+="-Wall"
+        OFLAGS+="-g"
+        OFLAGS+="-fno-strict-aliasing"
+        OFLAGS+="-O3"
+        # "-mnontrapping-fptoint" # https://emscripten.org/docs/compiling/WebAssembly.html#trapping
+
+        # linker flags
+        OFLAGS+=( "-s" EXPORTED_FUNCTIONS="['_main']" )
+        OFLAGS+=( --preload-file "./data" )
+        # OFLAGS+="--emrun"
+    else
+        OFLAGS=(-std=gnu2x -march=native -mtune=native)
+        OFLAGS+="-fpic"
+        OFLAGS+="-Wall"
+        OFLAGS+="-g"
+        OFLAGS+="-fno-strict-aliasing"
+        OFLAGS+="-O3"
+        ((_DARWIN_)) &&
+            OFLAGS+="-flto=thin" # https://clang.llvm.org/docs/ThinLTO.html
+    fi
+}
+
+CC () {
+    CC_SET_OFLAGS;
+    local COMPILER=$CC
+    if ((_WASM_)); then
+        COMPILER="emcc"
+    fi
+    $COMPILER $OFLAGS -I"$USR"/include -I"$D4_SRC" $CFLAGS $argv
+}
+
+LINK () {
+    CC_SET_OFLAGS;
+    local LINKER=$CC
+    if ((_WASM_)); then
+        LINKER="emcc"
+    fi
+    $LINKER $OFLAGS $LDFLAGS $argv
+}
