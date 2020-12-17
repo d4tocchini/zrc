@@ -1,12 +1,10 @@
 
 pkg\ emsdk () {
+    export EMSDK_PYTHON="`which python3`"
 
     __init__() {
         # macos deps: Xcode Command Line Tools, git, cmake
         git clone "https://github.com/emscripten-core/emsdk.git"
-        pushd emsdk
-        pkg emsdk pull
-        popd emsdk
     }
 
     # NOTE: If you change the location of the SDK (e.g. take it to another computer on an USB):
@@ -18,7 +16,6 @@ pkg\ emsdk () {
         git pull
         # Download and install the latest SDK tools.
         ./emsdk install latest
-        emsdk use
     }
 
     \ use() {
