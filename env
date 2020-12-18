@@ -1,10 +1,33 @@
+
 export ZRC_DIR="${PWD}/zrc"
 export MODZ_DIR="${ZRC_DIR}/modz"
 mod () {
     source "${MODZ_DIR}/${1}.zrc"
 }
 
-echo "zrc/env mods"
+export PREFIX="${PREFIX:-./usr}"
+mkdir -p "$PREFIX"
+export PREFIX="`realpath \"${PREFIX}\"`"
+mkdir -p "$PREFIX/bin"
+mkdir -p "$PREFIX/lib"
+mkdir -p "$PREFIX/include"
+mkdir -p "$PREFIX/share"
+
+# export D4WD="`realpath $PWD/..`"
+# export D4SRC="${D4WD}/src"
+# export RUN_PATH="${D4WD}/main.js"
+# export NODE_ENV="production"
+
+if [ ! $PKG_IN_PATH ] ; then
+    export PKG_IN_PATH=1;
+    # export PATH="${PREFIX}/bin:${PATH}:${PWD}/node_modules/.bin"
+    export PATH="${PREFIX}/bin:${PATH}"
+fi
+
+export PKG_CONFIG_PATH="$PREFIX"/lib/pkgconfig
+
+
+
 mod fs
 mod soa
 mod cc

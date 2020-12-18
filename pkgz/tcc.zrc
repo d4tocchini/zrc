@@ -1,6 +1,12 @@
 
 pkg\ tcc () {
 
+    export TCC_FLAGS="-O2 -r -nostdlib -nostdinc -pthread -Wno-implicit-function-declaration \
+-L${PREFIX}/lib \
+-I${PREFIX}/include \
+-I${PWD} \
+"
+
     __install__ () {
         git clone https://github.com/d4tocchini/tcc.git
         pushd tcc
