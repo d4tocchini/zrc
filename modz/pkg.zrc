@@ -39,12 +39,17 @@ pkg-mount () {
     PKGWD="`realpath ${1}`"
 }
 
-pkg-needs-init () {
+pkg-needs-install () {
     if [[ -d "${PKGWD}/${1}" ]] ; then
         return 0;
     else
         return 1;
     fi
+}
+
+pkg-needs-init () {
+    # TODO:
+    return 1;
 }
 
 pkg-reload () {
@@ -137,21 +142,29 @@ _pkg-load ()
         __pkg-process-defs
 
         type __install__ >/dev/null
-
-        echo "pkg-has-init" $1 " PWD=" $PWD
+        echo "pkg-has-install" $1 " PWD=" $PWD
+        alias @="pkg ${1}"
         if (( $? == 0 )) ; then
-            echo "pkg-needs-init" $1
-            pkg-needs-init "$1"
+            echo "pkg-needs-install" $1
+            pkg-needs-install "$1"
             if (( $? == 1 )) ; then
-                alias @="pkg ${1}"
                 __install__
                 # eval "@ () { pkg ${1} \$argv }"
                 # export -f @
                 # $(__install__) &
-                _PKG_LOADING_PIDS+=($!)
+                # _PKG_LOADING_PIDS+=($!)
                 # unset -f @
             fi
             unset -f __install__ 2>/dev/null
+        fi
+
+        type __init__ >/dev/null
+        if (( $? == 0 )) ; then
+            pkg-needs-init "$1"
+            if (( $? == 1 )) ; then
+                __init__
+            fi
+            unset -f __init__ 2>/dev/null
         fi
 
     } always {
