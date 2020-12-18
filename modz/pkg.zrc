@@ -280,6 +280,7 @@ pkg-popd () {
 
 pkg-pushd ()
 {
+    # echo ":: pkg-pushd $1" WARNING: echo not here, add to thee argv
     eval "pushd -q  \"\$pkg_${1}[wd]\""
     wd="$PWD"
 }

@@ -95,7 +95,10 @@ CC () {
     if ((_WASM_)); then
         COMPILER="emcc"
     fi
-    $COMPILER $OFLAGS -I"$USR"/include -I"$D4_SRC" $CFLAGS $argv
+    echo
+    echo $argv
+    echo
+    $COMPILER $OFLAGS -I"$PREFIX"/include -I"$PKGWD" $CFLAGS $argv
 }
 
 LINK () {
