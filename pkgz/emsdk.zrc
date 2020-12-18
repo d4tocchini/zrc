@@ -46,6 +46,7 @@ pkg\ emsdk () {
 
     \ update() {
         __emsdk_uses_latest__=0
+        git pull
         # Fetch the latest registry of available tools.
         ./emsdk update
         # Download and install the latest SDK tools.
