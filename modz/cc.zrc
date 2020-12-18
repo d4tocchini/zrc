@@ -99,7 +99,7 @@ CC () {
     else
         COMPILER=$CC
     fi
-    pushd "${CC_BUILD_DIR:-./}/${CC_TARGET:-}"
+    pushd "${CC_OUT_DIR:-./}/${CC_TARGET:-}"
         $COMPILER $OFLAGS -I"$PREFIX"/include -I"$PKGWD" $CFLAGS $argv
     popd
 }

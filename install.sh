@@ -25,7 +25,7 @@
 # tty_reset="$(tty_escape 0)"
 
 
-# TODO: gnu coreutils : realpath
+
 
 git clone https://github.com/d4tocchini/zrc.git
 
