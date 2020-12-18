@@ -4,19 +4,23 @@ pkg\ _test () {
     __install__ () {
         echo "_test __install__ ; " $PWD
         mkdir -p _test
-        @ setup
-        rm -rf _test
+    }
+
+    __init__ () {
+        echo "_test __init__ ; " $PWD
+        _test setup
+        # rm -rf _test
     }
 
     : wd "$PWD"/_test
 
     \ setup () {
         echo "_test setup ; " $PWD
-        @ load
+        _test load
     }
 
     \ load () {
-        @ will-load
+        _test will-load
         echo "_test load ; " $PWD
     }
 

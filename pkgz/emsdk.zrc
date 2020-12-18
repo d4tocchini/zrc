@@ -5,7 +5,7 @@ pkg\ emsdk () {
     __install__() {
         # macos deps: Xcode Command Line Tools, git, cmake
         git clone "https://github.com/emscripten-core/emsdk.git"
-        @ pull
+        emsdk pull
     }
 
     # NOTE: If you change the location of the SDK (e.g. take it to another computer on an USB):

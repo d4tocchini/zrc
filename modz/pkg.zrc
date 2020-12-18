@@ -143,11 +143,11 @@ _pkg-load ()
 
         type __install__ >/dev/null
         echo "pkg-has-install" $1 " PWD=" $PWD
-        alias @="pkg ${1}"
         if (( $? == 0 )) ; then
             echo "pkg-needs-install" $1
             pkg-needs-install "$1"
             if (( $? == 1 )) ; then
+                alias @="pkg ${1}"
                 __install__
                 # eval "@ () { pkg ${1} \$argv }"
                 # export -f @
@@ -162,6 +162,7 @@ _pkg-load ()
         if (( $? == 0 )) ; then
             pkg-needs-init "$1"
             if (( $? == 1 )) ; then
+                alias @="pkg ${1}"
                 __init__
             fi
             unset -f __init__ 2>/dev/null
