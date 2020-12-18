@@ -2,30 +2,65 @@
 pkg\ _test () {
 
     __install__ () {
-        echo "_test __install__ ; " $PWD
         mkdir -p _test
+        @ log "__install__"
+        @ load
     }
 
     __init__ () {
-        echo "_test __init__ ; " $PWD
-        _test setup
+        @ log "__init__"
+        @ setup
         # rm -rf _test
     }
 
     : wd "$PWD"/_test
 
+    \ uninstall () {
+        @ log "uninstall"
+        cd ..
+        rm -rf ./${PKG}
+    }
+
     \ setup () {
-        echo "_test setup ; " $PWD
-        _test load
+        @ log "setup"
     }
 
     \ load () {
+        @ log "load"
         _test will-load
-        echo "_test load ; " $PWD
     }
 
     \ will-load () {
-        echo "_test will-load ; " $PWD
+        @ log "will-load"
+    }
+
+    \ test-self () {
+        echo 1
+        pkg _test log "$: pkg _test log"
+
+        echo 2
+        _test log "$: _test log"
+
+        echo 3
+        @ log "$: @ log"
+
+        echo 4
+        # if [[ $PKG == _test ]] ; then echo YYY; else echo NNN; fi
+        eval "$PKG log \"\$PKG log\""
+
+        echo 5
+        pkg $PKG log "$: pkg \$PKG log"
+
+        echo 6
+        local id=$PKG
+        $id log "\$id log"
+
+        echo 7
+        $PKG log "\$PKG log"
+    }
+
+    \ log () {
+        echo "_test : $argv // $PKG $PWD"
     }
 
 }

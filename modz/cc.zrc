@@ -74,8 +74,8 @@ CC_SET_OFLAGS () {
         # "-mnontrapping-fptoint" # https://emscripten.org/docs/compiling/WebAssembly.html#trapping
 
         # linker flags
-        OFLAGS+=( "-s" EXPORTED_FUNCTIONS="['_main']" )
-        OFLAGS+=( --preload-file "./data" )
+        OFLAGS+=(-s EXPORTED_FUNCTIONS="['_main']")
+        OFLAGS+=(--preload-file "./data")
         # OFLAGS+="--emrun"
     else
         OFLAGS=(-std=gnu2x -march=native -mtune=native)
@@ -89,16 +89,19 @@ CC_SET_OFLAGS () {
     fi
 }
 
+# cc_out_dir
+
 CC () {
     CC_SET_OFLAGS;
-    local COMPILER=$CC
+    local COMPILER
     if ((_WASM_)); then
         COMPILER="emcc"
+    else
+        COMPILER=$CC
     fi
-    echo
-    echo $argv
-    echo
-    $COMPILER $OFLAGS -I"$PREFIX"/include -I"$PKGWD" $CFLAGS $argv
+    pushd "${CC_BUILD_DIR:-./}/${CC_TARGET:-}"
+        $COMPILER $OFLAGS -I"$PREFIX"/include -I"$PKGWD" $CFLAGS $argv
+    popd
 }
 
 LINK () {

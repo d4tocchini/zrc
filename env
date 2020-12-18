@@ -26,7 +26,10 @@ fi
 
 export PKG_CONFIG_PATH="$PREFIX"/lib/pkgconfig
 
-
+#  TODO: ugh
+# function exportf (){
+#     export $(echo $1)="`whence -f $1 | sed -e "s/$1 //" `"
+# }
 
 mod fs
 mod soa
