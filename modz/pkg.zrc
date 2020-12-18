@@ -44,13 +44,18 @@ alias void="builtin :"
 
 export PKGWD=""
 export PKGZ_DIR="${ZRC_DIR}/pkgz"
+# _PKG_LOADING_PIDS=()
 
-pkg-mount () {
+alias pkg-i=pkg-install
+
+pkg-mount ()
+{
     mkdir -p "$1"
     PKGWD="`realpath ${1}`"
 }
 
-pkg-needs-install () {
+pkg-needs-install ()
+{
     if [[ -d "${PKGWD}/${1}" ]] ; then
         return 0;
     else
@@ -58,18 +63,18 @@ pkg-needs-install () {
     fi
 }
 
-pkg-needs-init () {
-    # TODO:
+pkg-needs-init ()
+{ # TODO:
     return 1;
 }
 
-pkg-reload () {
+pkg-reload ()
+{
 
 }
 
-_PKG_LOADING_PIDS=()
-
-pkg-load () {
+pkg-install ()
+{
     ":" ()
     {
         print "\t\t: $1"
@@ -111,7 +116,7 @@ pkg-load () {
     pushd "$PKGWD"
     {
         while (($#argv)) ; do
-            _pkg-load "$1"
+            _pkg-install "$1"
             shift
         done
 
@@ -134,14 +139,14 @@ pkg-load () {
 
     # ls -1 ${1}/**/"${PKG_FILENAME}" ${=PKG_LS_OPTS} | while read -r p;
     # do
-    #     _pkg-load-file "$p" # &&  tput rc;tput el             # rc = restore cursor, el = erase to end of line
+    #     _pkg-install-file "$p" # &&  tput rc;tput el             # rc = restore cursor, el = erase to end of line
     # done
     echo "|\npkg [" ${=PKGS} "]"
     unset -f ":"
     unset -f "name:"
 }
 
-_pkg-load ()
+_pkg-install ()
 {
 
     local PKGZ_FILE="${PKGZ_DIR}/${1}.zrc"
@@ -210,10 +215,40 @@ pkg ()
 
 
 # ----------------------------------------------------
+@ ()
+{
+    pkg "$PKG" $argv
+}
+@proto ()
+{
+    pkg:proto:${1} $argv[2,-1]
+}
 pkg:proto:run ()
 {
-    echo $PWD
     ./"${1}" $argv[2,-1]
+}
+pkg:proto:uninstall ()
+{
+    cd ..
+    rm -rf ./${PKG}
+    if ((?)) ; then
+        return 1
+    fi
+    echo pkg \"${PKG}\" uninstalled
+    return 0
+}
+pkg:proto:reinstall ()
+{
+    @ uninstall
+    pkg-install "$PKG"
+}
+pkg:proto:git ()
+{
+    git $argv
+}
+pkg:proto:pull ()
+{
+    git pull $argv
 }
 pkg:proto:make ()
 {
@@ -261,11 +296,6 @@ pkg-popd ()
 {
     popd -q
     wd="$PWD"
-}
-
-@ ()
-{
-    pkg "$PKG" $argv
 }
 
 pkg-pushid ()

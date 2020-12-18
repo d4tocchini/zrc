@@ -17,8 +17,7 @@ pkg\ _test () {
 
     \ uninstall () {
         @ log "uninstall"
-        cd ..
-        rm -rf ./${PKG}
+        @proto uninstall
     }
 
     \ setup () {

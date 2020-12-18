@@ -1,6 +1,7 @@
 
 pkg\ emsdk () {
-
+    export __emsdk_emcc_subpath__="upstream/emscripten/emcc"
+    export __emsdk_uses_latest__=0
     # export EMSDK_PYTHON="`which python3`"
 
     __install__() {
@@ -10,33 +11,48 @@ pkg\ emsdk () {
         #   re-run the `./emsdk activate latest` and `source ./emsdk_env.sh`
     }
 
-
-
     : wd "$PWD"/emsdk
 
+    \ needs-build ()
+    {
+        [[ -f $__emsdk_emcc_subpath__ ]] ;
+        return $?
+    }
+
     \ pull() {
-        # Fetch the latest version of the emsdk (not needed the first time you clone)
-        git pull
-        # Download and install the latest SDK tools.
-        ./emsdk install latest
-        # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
-        ./emsdk activate latest
+        @ needs-build ;
+        echo needs-build $?
+        if ((?)); then
+            pkg-pushd $PKG # NOTE: NEEDED TO FIX EMSDK FUCK UP
+                __emsdk_uses_latest__=0
+                # Fetch the latest version of the emsdk (not needed the first time you clone)
+                git pull
+                # Download and install the latest SDK tools.
+                ./emsdk install latest
+                # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+                ./emsdk activate latest
+            pkg-popd
+        fi
+        @ use
     }
 
     \ use() {
-        # Activate PATH and other environment variables in the current terminal
-        source ./emsdk_env.sh
+        if ((! __emsdk_uses_latest__)) ; then
+            # Activate PATH and other environment variables in the current terminal
+            source ./emsdk_env.sh
+            __emsdk_uses_latest__=1
+        fi
     }
 
     \ update() {
+        __emsdk_uses_latest__=0
         # Fetch the latest registry of available tools.
         ./emsdk update
         # Download and install the latest SDK tools.
         ./emsdk install latest
         # Set up the compiler configuration to point to the "latest" SDK.
         ./emsdk activate latest
-        # Activate PATH and other environment variables in the current terminal
-        source ./emsdk_env.sh
+        @ use
     }
 
     \ cc() {
