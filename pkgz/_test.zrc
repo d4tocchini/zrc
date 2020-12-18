@@ -1,0 +1,54 @@
+
+pkg\ _test () {
+
+    __install__ () {
+        echo "_test __install__ ; " $PWD
+        mkdir -p _test
+        @ setup
+        rm -rf _test
+    }
+
+    : wd "$PWD"/_test
+
+    \ setup () {
+        echo "_test setup ; " $PWD
+        @ load
+    }
+
+    \ load () {
+        @ will-load
+        echo "_test load ; " $PWD
+    }
+
+    \ will-load () {
+        echo "_test will-load ; " $PWD
+    }
+
+}
+
+# pkg\ _test_child () {
+
+#     __install__ () {
+#         echo "_test __install__ ; " $PWD
+#         mkdir -p _test
+#         @ setup
+#         rm -rf _test
+#     }
+
+#     : wd "$PWD"/_test_child/
+
+#     \ setup () {
+#         echo "_test setup ; " $PWD
+#         @ load
+#     }
+
+#     \ load () {
+#         @ will-load
+#         echo "_test load ; " $PWD
+#     }
+
+#     \ will-load () {
+#         echo "_test will-load ; " $PWD
+#     }
+
+# }
