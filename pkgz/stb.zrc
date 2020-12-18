@@ -1,7 +1,7 @@
 
 pkg\ stb () {
 
-    __init__ () {
+    __install__ () {
         git clone https://github.com/d4tocchini/stb.git
     }
 

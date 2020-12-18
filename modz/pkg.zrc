@@ -130,13 +130,13 @@ _pkg-load ()
     local PKGZ_FILE="${PKGZ_DIR}/${1}.zrc"
     {
         print "+ \"$PKGZ_FILE\" "
-        unset -f __init__ 2>/dev/null
+        unset -f __install__ 2>/dev/null
 
         source "$PKGZ_FILE"
 
         __pkg-process-defs
 
-        type __init__ >/dev/null
+        type __install__ >/dev/null
 
         echo "pkg-has-init" $1 " PWD=" $PWD
         if (( $? == 0 )) ; then
@@ -144,14 +144,14 @@ _pkg-load ()
             pkg-needs-init "$1"
             if (( $? == 1 )) ; then
                 alias @="pkg ${1}"
-                __init__
+                __install__
                 # eval "@ () { pkg ${1} \$argv }"
                 # export -f @
-                # $(__init__) &
+                # $(__install__) &
                 _PKG_LOADING_PIDS+=($!)
                 # unset -f @
             fi
-            unset -f __init__ 2>/dev/null
+            unset -f __install__ 2>/dev/null
         fi
 
     } always {

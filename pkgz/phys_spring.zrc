@@ -1,7 +1,7 @@
 
 pkg\ phys_spring () {
 
-    __init__ () {
+    __install__ () {
         git clone https://github.com/d4tocchini/phys_spring.git
     }
 

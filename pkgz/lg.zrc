@@ -1,7 +1,7 @@
 
 pkg\ lg () {
 
-    __init__ () {
+    __install__ () {
         git clone https://github.com/d4tocchini/lg.git
         pkg lg pull
     }

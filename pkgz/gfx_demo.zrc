@@ -2,7 +2,7 @@
 pkg\ gfx_demo () {
     # req gfx
 
-    __init__ () {
+    __install__ () {
         git clone https://github.com/d4tocchini/gfx_demo.git
     }
 

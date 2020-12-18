@@ -2,12 +2,11 @@
 # TODO: sdl2_image https://www.libsdl.org/projects/SDL_image/
 pkg\ sdl2 () {
 
-    __init__ () {
+    __install__ () {
         git clone https://github.com/d4tocchini/SDL2.git
-        pushd SDL2
+        pushd -q SDL2
             git checkout d4
-            git pull
-        popd
+        popd -q
     }
 
     : wd "$PWD"/SDL2

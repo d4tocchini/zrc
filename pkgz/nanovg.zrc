@@ -1,12 +1,12 @@
 
 pkg\ nanovg () {
 
-    __init__ () {
+    __install__ () {
         git clone https://github.com/d4tocchini/nanovg
-        pushd nanovg
+        pushd -q nanovg
             git checkout d4
             git pull
-        popd
+        popd -q
     }
 
     : wd "$PWD"/nanovg

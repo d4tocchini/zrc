@@ -3,7 +3,7 @@
 
 pkg\ freetype2 () {
 
-    __init__ () {
+    __install__ () {
         git clone https://github.com/freetype/freetype2.git
     }
 

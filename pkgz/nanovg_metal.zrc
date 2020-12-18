@@ -1,7 +1,7 @@
 
 pkg\ nanovg_metal () {
 
-    __init__ () {
+    __install__ () {
         git clone https://github.com/d4tocchini/nanovg_metal
     }
 
