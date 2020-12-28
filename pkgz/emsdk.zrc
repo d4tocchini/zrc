@@ -1,50 +1,49 @@
-
+export __emsdk_emcc_subpath__="upstream/emscripten/emcc"
+export __emsdk_uses_latest__=0
+# export EMSDK_PYTHON="`which python3`"
 pkg\ emsdk () {
-    export __emsdk_emcc_subpath__="upstream/emscripten/emcc"
-    export __emsdk_uses_latest__=0
-    # export EMSDK_PYTHON="`which python3`"
-
-    __install__() {
+    : wd "$PWD/emsdk"
+    __install__()
+    {
         # macos deps: Xcode Command Line Tools, git, cmake
         git clone "https://github.com/emscripten-core/emsdk.git"
         # NOTE: If you change the location of the SDK (e.g. take it to another computer on an USB):
         #   re-run the `./emsdk activate latest` and `source ./emsdk_env.sh`
     }
-
-    : wd "$PWD"/emsdk
-
     \ needs-build ()
     {
         [[ -f $__emsdk_emcc_subpath__ ]] ;
         return $?
     }
-
-    \ pull() {
+    \ pull()
+    {
         @ needs-build ;
-        echo needs-build $?
         if ((?)); then
-            pkg-pushd $PKG # NOTE: NEEDED TO FIX EMSDK FUCK UP
-                __emsdk_uses_latest__=0
-                # Fetch the latest version of the emsdk (not needed the first time you clone)
-                git pull
-                # Download and install the latest SDK tools.
-                ./emsdk install latest
-                # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
-                ./emsdk activate latest
-            pkg-popd
+            # @ log "needs-build"
+            # NOTE: NEEDED TO FIX EMSDK FUCK UP in dir stack
+            @ cd
+            __emsdk_uses_latest__=0
+            # Fetch the latest version of the emsdk (not needed the first time you clone)
+            git pull
+            # Download and install the latest SDK tools.
+            ./emsdk install latest
+            # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+            ./emsdk activate latest
         fi
         @ use
     }
-
-    \ use() {
+    \ use()
+    {
         if ((! __emsdk_uses_latest__)) ; then
             # Activate PATH and other environment variables in the current terminal
+            @ cd
             source ./emsdk_env.sh
             __emsdk_uses_latest__=1
         fi
     }
-
-    \ update() {
+    \ update()
+    {
+        @ cd
         __emsdk_uses_latest__=0
         git pull
         # Fetch the latest registry of available tools.
@@ -55,12 +54,12 @@ pkg\ emsdk () {
         ./emsdk activate latest
         @ use
     }
-
-    \ cc() {
+    \ cc()
+    {
         emcc -v $argv
     }
-
-    \ verify() {
+    \ verify()
+    {
         emcc -v
     }
 }

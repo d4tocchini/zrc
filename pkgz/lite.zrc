@@ -1,27 +1,30 @@
 
 pkg\ lite () {
-
-    __install__ () {
-        git clone https://github.com/d4tocchini/lite.git
-        pushd -q lite
-            git checkout d4
-            git pull
-        popd -q
-    }
-
     : wd "$PWD"/lite
-    \ +cflags-src () {
-        soa+ cflags \
-            "-DLUA_USE_POSIX" \
-            "-I${PWD}/src"
+    __install__ ()
+    {
+        git clone https://github.com/d4tocchini/lite.git
+        @ pull
+    }
+    \ pull ()
+    {
+        @ cd
+        git checkout d4
+        git pull
+    }
+    \ +cflags-src ()
+    {
+        arr+ cflags "-DLUA_USE_POSIX" "-I${wd}/src"
     }
     \ build-lua () {
-        soa: cflags lflags
+        arr: cflags lflags
         gfx +cflags , +lflags
         lite +cflags-src
 
         local PIDS=()
-        pushd src/lib
+
+        @ cd src/lib
+
         rm *.o
         for f in `find lua52 -name "*.c"`; do
             # $CC -c $cflags $f -o "${f//\//_}.o" &
@@ -36,22 +39,23 @@ pkg\ lite () {
                 got_error=1
             fi
         done
-        popd
 
         $got_error && echo got_error
         return $got_error
     }
     \ build () {
-        soa: cflags lflags
+        arr: cflags lflags
         gfx +cflags , +lflags
         lite +cflags-src
+
+        @ cd
 
         local OUT=lited
         rm -f $OUT
 
         # if [[ $got_error == false ]]; then
             echo "linking..." $PWD
-            CC src/lib/*.o $lflags $cflags -o $OUT ./src/main.c
+            CC $wd/src/lib/*.o $lflags $cflags -o $OUT $wd/src/main.c
         # fi
 
         echo "cleaning up..."

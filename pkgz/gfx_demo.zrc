@@ -1,69 +1,122 @@
 
+# pkg\ gfx_demo\ BEGIN ()
+# {
+
+# }
+# pkg\ gfx_demo\ install ()
+# {
+#     git clone https://github.com/d4tocchini/gfx_demo.git
+# }
+# pkg\ gfx_demo\ clean ()
+# {
+
+# }
+# pkg\ gfx_demo\ build ()
+# {
+#     local o="$1"
+#     local f=()
+#     case $o in
+#         1) f=("");;
+#     esac
+# }
+# pkg\ gfx_demo\  ()
+# {
+#     case $1 in
+#         1) ;;
+#     esac
+#     CC $cflags $lflags -o $cmd $argv
+# }
+# pkg\ gfx_demo\ END ()
+# {
+
+# }
+
 pkg\ gfx_demo () {
     # req gfx
-
-    __install__ () {
-        git clone https://github.com/d4tocchini/gfx_demo.git
-    }
-
     : wd "$PWD/gfx_demo"
     : TARGETS "1 2 3 4 5 6 7"
-    : 1 "./1_hello.c"
-    : 2 "./2_nvg.c"
-    : 3 "./3_r.c"
-    : 4 "./4_mu.c"
-    : 5 "./5_lg.c"
-    : 6 "./6_tcc.c"
-    : 7 "./7_via.c"
-    \ 1 () {
-        soa: cflags lflags
+    : 1 "$wd/1_hello.c"
+    : 2 "$wd/2_nvg.c"
+    : 3 "$wd/3_r.c"
+    : 4 "$wd/4_mu.c"
+    : 5 "$wd/5_lg.c"
+    : 6 "$wd/6_tcc.c"
+    : 7 "$wd/7_via.c"
+    __install__ ()
+    {
+        git clone https://github.com/d4tocchini/gfx_demo.git
+    }
+    __init__ ()
+    {
+
+    }
+    \ make ()
+    {
+        arr: cflags lflags
         gfx +cflags , +lflags
+        @proto make $argv;
+    }
+    \ 1 ()
+    {
+        @ cd
         CC $cflags $lflags -o $cmd $argv
     }
-    \ 2 () {
-        soa: cflags lflags
-        gfx +cflags , +lflags
+    \ 2 ()
+    {
+        @ cd
         CC $cflags $lflags -o $cmd $argv
     }
-    \ 3 () {
-        soa: cflags lflags
-        gfx +cflags , +lflags
+    \ 3 ()
+    {
+        @ cd
         microui +cflags
         CC $cflags $lflags -o $cmd $argv
     }
-    \ 4 () {
-        soa: cflags lflags
-        gfx +cflags , +lflags
+    \ 4 ()
+    {
         microui +cflags
         CC $cflags $lflags -o $cmd $argv
     }
-    \ 5 () {
-        soa: cflags lflags
-        gfx +cflags , +lflags
+    \ 5 ()
+    {
         microui +cflags
         lg +cflags , +lflags
         CC $cflags $lflags -o $cmd $argv
     }
-    \ 6 () {
-        soa: cflags lflags
-        gfx +cflags , +lflags
+    \ 6 ()
+    {
+        @ cd
         tcc +cflags , +lflags
         lg +cflags , +lflags
         CC $cflags $lflags -o $cmd $argv
     }
-    \ 7 () {
-        soa: cflags lflags
-        gfx +cflags , +lflags
+    \ 7 ()
+    {
+        @ cd "$wd"
+        bld-proj-cd "$PKG"
+
+        # bld-proj-hlinkd "$wd/data"
+        gcp -rlf "$wd/data/" "$bwd"
+
+        local ofile="$cmd";
+        if ((BLD_WEBGL)); then
+            ofile="$ofile".html
+            arr+ lflags "--shell-file" "$wd/shell.html"
+            # arr+ lflags "--use-preload-plugins"
+            arr+ lflags "--preload-file" "data/font/InterDisplay-SemiBold.otf"
+            arr+ lflags "--preload-file" "data/font/entypo.ttf"
+            arr+ lflags "--preload-file" "./data/img/d5.png"
+            arr+ clfags "-DDEMO_IMG=\"./data/img/d5.png\""
+        fi
+        # bld-proj-target $ofile
+
         microui +cflags
         # lg +cflags , +lflags
-        local ofile=$cmd;
-        if ((_WASM_)); then
-            ofile="$ofile".html
-        fi
         CC $cflags $lflags -o $ofile $argv
     }
-
-    \ build () {
+    # functions
+    \ build ()
+    {
         # (($#argv)) || argv=`@ : TARGETS`
         # local tgt
         # local deps
@@ -73,7 +126,9 @@ pkg\ gfx_demo () {
         #     $CC $cflags $lflags -o $tgt
         # done
     }
-    \ clean () {
+    \ clean ()
+    {
+        @ cd
         rm -rf `@ : TARGETS`
     }
 }

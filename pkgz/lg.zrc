@@ -1,26 +1,29 @@
 
 pkg\ lg () {
-
-    __install__ () {
+    : wd "$PWD/lg"
+    __install__ ()
+    {
         git clone https://github.com/d4tocchini/lg.git
-        pkg lg pull
+        @ pull
     }
-
-    \ pull () {
+    \ pull ()
+    {
         git checkout lg-d4
         git pull
     }
-
-    : wd "$PWD"/lg
-    \ +lflags () {
-        soa+ lflags -lz -pthread -L"$PWD" -llemongraph
+    \ +lflags ()
+    {
+        arr+ lflags -lz -pthread -L"$wd" -llemongraph
     }
-    \ +cflags () {
-        soa+ cflags -I"$PWD"/lib -I"$PWD"/deps/lmdb/libraries/liblmdb \
+    \ +cflags ()
+    {
+        arr+ cflags -I"$wd/lib" -I"$wd/deps/lmdb/libraries/liblmdb" \
             -fPIC -Wunused-variable -Wunused-but-set-variable
             # -O3 -Wall
     }
-    \ make () {
+    \ make ()
+    {
+        @ cd
         make $argv
     }
 }

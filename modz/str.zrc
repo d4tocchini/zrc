@@ -1,0 +1,36 @@
+
+# string module
+
+# To remove element number $i: a=("${(@)a[1,$i-1]}" "${(@)a[$i+1,$#a]}")
+# To remove any occurence of b: a=("${(@)a:#b}")
+    # :# is the hieroglyph to remove matching elements; "" and (@) is to operate correctly on arrays even if they contain empty elements.
+
+str.ends-with ()
+{
+    local v="`eval 'echo $'${1}`";
+    [[ "$1" == *"$2" ]]
+    return $?
+}
+str.starts-with ()
+{
+    local v="`eval 'echo $'${1}`";
+    [[ "$v" == "$2"* ]]
+    return $?
+}
+str.includes ()
+{
+    local v="`eval 'echo $'${1}`";
+    [[ "$v" == *"$2"* ]]
+    return $?
+}
+
+str-test ()
+{
+    local v="hello world"
+    str.ends v "o world"
+    ASS 1
+    str.starts v "hell"
+    ASS 1
+    str.includes v "heaven"
+    ASS 0
+}

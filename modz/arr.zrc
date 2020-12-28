@@ -1,0 +1,80 @@
+
+# array module
+alias arr:="arr-clear-each"
+alias arr+="arr.push"
+arr-help ()
+{
+    echo '
+    a=()
+    arr.push a "y"
+    arr.unshift a "x"
+    echo $a
+    arr.pop a
+    echo $a
+    arr.slice a $ibegin $iend
+'
+}
+arr-clear-each ()
+{
+    while (($#argv)); do
+        arr.clear "$1"
+        # TODO: exporta ?
+        shift;
+    done
+}
+arr.push ()
+{
+    local key=$1
+    shift
+    while (($#argv)); do
+        eval "$key+=\"${1}\""
+        shift;
+    done
+}
+arr.touch ()
+{
+    [[ ! -v "$1" ]] && arr.clear "$1";
+}
+arr.clear ()
+{
+    set -A $1
+}
+arr.pop ()
+{
+    eval "${1}=(\${${1}[1,-2]})"
+}
+arr.unshift ()
+{
+    eval "${1}=(\${${1}[2,-1]})"
+}
+arr.slice ()
+{
+    eval "${1}=(\${${1}[${2},${3}]})"
+}
+arr.includes ()
+{
+    # [[ ${my_array[(ie)$my_string]} -le ${#my_array} ]] # credit: https://unix.stackexchange.com/questions/411304/how-do-i-check-whether-a-zsh-array-contains-a-given-value
+    eval "[[ \${$1[(ie)$2]} -le \${#$1} ]]"
+    return $?
+}
+# arr+hook ()
+# {
+#     local key="$1"
+#     local fun="$2"
+#     arr.touch "__${key}_hooks__"
+#     arr+      "__${key}_hooks__" "$fun"
+# }
+# _arr_do_hook ()
+# {
+# }
+arr-test ()
+{
+    arr: foo bar # declare 2 arrays foo & bar
+    arr+ foo 1
+    arr+ foo 2
+    arr+ foo 3
+    echo "${foo[2]} == 2"
+    echo "${#bar} == 0"
+    arr: foo bar # reset
+    echo "${#foo} == 0"
+}

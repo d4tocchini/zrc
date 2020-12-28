@@ -1,12 +1,12 @@
 
 pkg\ microui () {
-
-    __install__ () {
+    : wd "${PWD}/microui"
+    __install__ ()
+    {
         git clone https://github.com/d4tocchini/microui.git
     }
-
-    : wd "$PWD"/microui
-    \ +cflags () {
-        soa+ cflags "${wd}/src/microui.c"
+    \ +cflags ()
+    {
+        arr+ cflags "${wd}/src/microui.c"
     }
 }

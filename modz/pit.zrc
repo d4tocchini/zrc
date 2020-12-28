@@ -1,0 +1,11 @@
+
+# pkg git module
+
+pit ()
+{
+    local cwd="$PWD"
+    {
+        pkg "$1" cd
+        git $argv[2,-1]
+    } always { cd "$cwd" }
+}

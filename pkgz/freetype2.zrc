@@ -13,25 +13,36 @@ pkg\ freetype2 () {
     #     echo "releases: https://download.savannah.gnu.org/releases/freetype/"
     # }
     \ +lflags () {
-        if ((! _WASM_)) ; then
-            soa+ lflags `pkg-config --libs freetype2`
+        if ((! BLD_WEBGL)) ; then
+            arr+ lflags `pkg-config --libs freetype2`
         fi
     }
     \ +cflags () {
-        if ((_WASM_)) ; then
-            soa+ cflags -s USE_FREETYPE=1
+        if ((BLD_WEBGL)) ; then
+            arr+ cflags -s USE_FREETYPE=1
         else
-            soa+ cflags `pkg-config --cflags freetype2`
+            arr+ cflags `pkg-config --cflags freetype2`
+        fi
+    }
+    \ install-if-needed ()
+    {
+        if [[ ! -f "$PREFIX/bin/tccrun" ]]; then
+            @ configure
+            @ make
+            @ make install
         fi
     }
     \ configure () {
+        @ cd
         sh autogen.sh
-        $CONFIGURE $argv
+        ./configure --prefix="$PREFIX" $argv
     }
     \ make () {
-        gmake
+        @ cd
+        gmake $argv
     }
     \ install () {
-        gmake install
+        @ cd
+        gmake install $argv
     }
 }

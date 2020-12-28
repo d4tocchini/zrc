@@ -1,0 +1,7 @@
+
+# function module
+
+fn.delete ()
+{
+    unset -f $argv
+}

@@ -1,51 +1,62 @@
 
 # TODO: sdl2_image https://www.libsdl.org/projects/SDL_image/
+
 pkg\ sdl2 () {
-
-    __install__ () {
-        git clone https://github.com/d4tocchini/SDL2.git
-        pushd -q SDL2
-            git checkout d4
-        popd -q
-    }
-
     : wd "$PWD"/SDL2
+    __install__ ()
+    {
+        git clone https://github.com/d4tocchini/SDL2.git
+        @ pull
+    }
+    \ pull ()
+    {
+        @ cd
+        git checkout d4
+        git pull
+    }
     \ +lflags () {
-        if ((! _WASM_)) ; then
-            soa+ lflags \
+        if ((! BLD_WEBGL)) ; then
+            arr+ lflags \
             `pkg-config --libs SDL2` \
             "-lm"
             #"-lSDL2_image"
         fi
     }
     \ +cflags () {
-        if ((_WASM_)) ; then
-            soa+ cflags -s USE_SDL=2
-                #-s USE_SDL_IMAGE=2
+        if ((BLD_WEBGL)) ; then
+            arr+ cflags -s USE_SDL=2
+            #-s USE_SDL_IMAGE=2
         else
-            soa+ cflags `pkg-config --cflags SDL2`/..
+            arr+ cflags `pkg-config --cflags SDL2`/..
         fi
 
     }
-    \ configure () {
-        # echo configure
-        if ((_DARWIN_)) ; then
-            ./autogen.sh
-            CC=clang CXX=clang++ MAKE=gmake ./configure --without-x;
-        else
-            ./configure;
+    \ install-if-needed ()
+    {
+        if [[ ! -d "$PREFIX/include/SDL2" ]]; then
+            @ configure
+            @ make
+            @ install
         fi
     }
-    \ build () { # --prefix=
-        # echo build
-        gmake -j $@ || {
-            gmake clean
-            gmake -j $@
-        }
+    \ configure ()
+    {
+        @ cd
+        # echo configure
+        if ((OS_MAC)) ; then
+            ./autogen.sh
+            CC=clang CXX=clang++ MAKE=gmake ./configure --prefix="$PREFIX" --without-x;
+        else
+            MAKE=gmake ./configure --prefix="$PREFIX";
+        fi
     }
-    \ install () { # --prefix=
-        # echo install
-        gmake install
+    \ make () {
+        @ cd
+        # echo build
+        gmake -j $argv || {
+            gmake clean
+            gmake -j $argv
+        }
     }
 }
 

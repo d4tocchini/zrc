@@ -1,0 +1,212 @@
+
+
+# bld - build linked directories
+export bwd="$bwd"
+export BLD_PREFIX="${BLD_PREFIX}";
+export BLD_DIR="${BLD_DIR:-build}"
+export BLD_PROJ="${BLD_PROJ}";
+export BLD_TGT="${BLD_TGT}"
+export BLD_ENV="${BLD_TGT}";
+#           env build flags below are derived via `bld-env $BLD_ENV`
+export      BLD_DEV=0
+#           graphics build flags
+export      BLD_GL=0
+export      BLD_GLES=0
+export      BLD_WEBGL=0
+export      BLD_METAL=0
+export      BLD_VULKAN=0
+#           OS build flags
+export      BLD_MAC=0
+export      BLD_WIN=0
+export      BLD_LINUX=0
+bld ()
+{
+    ((#argv == 0)) || [[ $1 = "-h" ]] && {
+        bld-help
+        return 0
+    }
+    local cmd=""
+    while ((#argv && #cmd == 0)); do
+        case $1 in
+            -mount) bld-mount $2; shift ;;
+            -p) bld-proj $2; shift ;;
+            -e) bld-env $2; shift ;;
+            *) cmd="bld-$1" ;;
+        esac
+        shift;
+    done
+    if which "$cmd" >/dev/null; then
+        "$cmd" "$argv"
+    else
+        echo "bld: unrecognized command: ${cmd}"
+    fi
+}
+bld-help ()
+{
+    cat<<-===
+
+    bld [opts] cmd [argv]
+
+    opts
+        -mount $BLD_PREFIX
+        -p $BLD_PROJ
+        -e $BLD_ENV
+        -h
+
+    cmds
+        cd, pushd, popd
+        run, open, close
+
+    functional api
+        bld-mount /usr/local
+        bld-env webgl2
+        bld-proj hello-world
+        bld-cd
+    will set \$PWD to "/usr/local/hello-world/webgl2"
+===
+}
+
+# bld-proj-target () {
+#     BLD_TGT="$1"
+#     local tgt_f="$bwd/.bld_target"
+#     touch "$tgt_f"
+#     echo "BLD_TGT=\"${BLD_TGT}\""  > "$tgt_f"
+# }
+bld-mount ()
+{
+    BLD_PREFIX="${BLD_PREFIX:-$PREFIX}"
+    mkdir -p "${BLD_PREFIX}/${BLD_DIR}"
+}
+bld-unmount ()
+{
+    BLD_PREFIX="";
+}
+bld-proj ()
+{
+    BLD_PROJ="${1}";
+    return 0
+}
+bld-env ()
+{
+    BLD_ENV="${1}";
+    local _env_="-${BLD_ENV}-"
+    # developer build flags
+    BLD_DEV=0
+    case $BLD_ENV in
+        *-dev-*) BLD_DEV=1 ;;
+        *-debug-*) BLD_ENV_DEV=2 ;;
+    esac
+    # graphics build flags
+    BLD_GL=0
+    BLD_GLES=0
+    BLD_WEBGL=0
+    BLD_METAL=0
+    BLD_VULKAN=0
+    case $_env_ in
+        *-webgl2-*) BLD_WEBGL=2 ;;
+        *-webgl1-*) BLD_WEBGL=1 ;;
+        *-gl33-*)   BLD_GL=33 ;;
+        *-gl3-*)    BLD_GL=3 ;;
+        *-gl2-*)    BLD_GL=2 ;;
+        *-gles3-*)  BLD_GLES=3 ;;
+        *-gles2-*)  BLD_GLES=2 ;;
+        *-metal-*)  BLD_METAL=1 ;;
+        *-vulkan-*) BLD_VULKAN=1 ;;
+        *)          ;;
+        # mac*) BLD_ENV_MAC=105 ;
+    esac
+    # OS build flags
+    BLD_MAC=0
+    BLD_WIN=0
+    BLD_LINUX=0
+    case $_env_ in
+        *-web*)     ;;
+        *-mac11-*)  BLD_MAC=11 ;;
+        *-mac*)     BLD_MAC=10 ;;
+        *-lin*)     BLD_LINUX=1 ;;
+    esac
+}
+bld-run ()
+{
+    # TODO:
+    bld-mkdirp
+
+    local tgt="${bwd}/${1}"
+    [[ ! -f "${bwd}/${1}" ]] && {
+        echo "bld can't run \"${bwd}/${1}\""
+        return 1
+    }
+    {
+        bld-pushd
+        "./${1}"
+    } always {
+        bld-popd
+    }
+}
+bld-cd ()
+{
+    bld-mkdirp
+    cd "${bwd}/${argv}"
+}
+bld-pushd ()
+{
+    bld-mkdirp
+    pushd -q "${bwd}/${argv}"
+}
+bld-popd ()
+{
+    popd -q
+}
+bld-proj-cd ()
+{
+    bld-proj "${1}"
+    bld-cd "${argv[2,-1]}"
+}
+bld-cd-mount ()
+{
+    cd "${BLD_PREFIX}"
+}
+bld-mkdirp ()
+{
+    local d
+    if (( ! $#BLD_PREFIX )); then
+        d="${PWD}/${BLD_DIR}"
+    else
+        d="${BLD_PREFIX}/${BLD_DIR}/${BLD_PROJ}"
+    fi
+    mkdir -p "$d";
+
+    if (( $#BLD_ENV )); then
+        d="${d}/${BLD_ENV}"
+        mkdir -p "$d";
+    fi
+    bwd="$d"
+}
+bld-open ()
+{
+    local tgt="$1"
+    local tgtpath="$bwd/$tgt"
+    [[ ! -f "$tgtpath" ]] && { tgtpath="${tgtpath}.html" }
+    [[ ! -f "$tgtpath" ]] && { return 1 }
+    case "$tgtpath" in
+        *.html)
+            open "${tgtpath}"
+        ;;
+        *)
+            "$tgtpath"
+        ;;
+    esac
+    return $?
+}
+bld-close ()
+{
+    local tgt="$bwd/run.zrc"
+    if [[ -f "$tgt" ]]; then
+        source "$tgt"
+    fi
+}
+# pkg extenstions
+
+
+
+#--------------------------------------------------------------------------------

@@ -12,11 +12,7 @@ mkdir -p "$PREFIX/bin"
 mkdir -p "$PREFIX/lib"
 mkdir -p "$PREFIX/include"
 mkdir -p "$PREFIX/share"
-
-# export D4WD="`realpath $PWD/..`"
-# export D4SRC="${D4WD}/src"
-# export RUN_PATH="${D4WD}/main.js"
-# export NODE_ENV="production"
+export PKG_CONFIG_PATH="$PREFIX"/lib/pkgconfig
 
 if [ ! $PKG_IN_PATH ] ; then
     export PKG_IN_PATH=1;
@@ -24,15 +20,32 @@ if [ ! $PKG_IN_PATH ] ; then
     export PATH="${PREFIX}/bin:${PATH}"
 fi
 
-export PKG_CONFIG_PATH="$PREFIX"/lib/pkgconfig
 
-#  TODO: ugh
+# export D4WD="`realpath $PWD/..`"
+# export D4SRC="${D4WD}/src"
+# export RUN_PATH="${D4WD}/main.js"
+# export NODE_ENV="production"
+
+#  TODO: export function, array, alias ...
 # function exportf (){
 #     export $(echo $1)="`whence -f $1 | sed -e "s/$1 //" `"
 # }
 
+# pkg's with `sh autogen.sh`, like freetype2 depends on
+#   automake (1.10.1) libtool (2.2.4) autoconf (2.62)
+
+mod os
+mod str
+mod arr
+mod map
+mod fn
 mod fs
-mod soa
+mod srv
+mod dq
+
+mod bld
 mod cc
+
 mod pkg
+mod pit
 

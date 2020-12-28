@@ -1,0 +1,52 @@
+
+if (( ! srv_last_port )); then
+    export srv_last_port=7800
+    map: srv_pids srv_urls
+    # TODO: exportm ??
+fi
+srv-h ()
+{
+cat<<-====
+    srv
+        -h
+        id (dir)
+        (id=dir=PWD)
+    srv.kill id
+====
+}
+srv () # id [dir=./]
+{
+    case $1 in
+        -h)
+            srv-h
+            return 0
+        ;;
+    esac
+    local id="${1:-$PWD}"
+    local dir="${2:-./}"
+    if [[ -d $dir ]]; then
+        ((srv_last_port++))
+        {
+            pushd "$dir"
+            python3 -m http.server $srv_last_port &
+            popd
+        }
+        map.set "srv_pids" "$id" "$!"
+        local url="http://0.0.0.0:${srv_last_port}"
+        map.set "srv_urls" "$id" "$url"
+        echo "srv ($url/) pid=$!"
+        return 0
+    fi
+    return 1
+}
+srv.open () # id (subpath)
+{
+    open "${srv_urls[$1]}/${2}"
+}
+srv.kill () # id
+{
+    local pid=${srv_pids[$1]};
+    map.unset "srv_pids" $1
+    echo "srv.kill ... pid=$pid"
+    ((pid)) && kill $pid
+}

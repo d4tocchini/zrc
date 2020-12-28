@@ -1,56 +1,77 @@
 
 pkg\ gfx () {
-
-    __install__ () {
+    : wd "$PWD"/gfx
+    __install__ ()
+    {
         git clone https://github.com/d4tocchini/gfx.git
     }
-
-    : wd "$PWD"/gfx
-
-    \ +cflags () {
+    \ +cflags ()
+    {
         # modz +cflags "sdl2" "nanovg" "nanovg_metal"
         pkg "sdl2"      +cflags
         pkg "nanovg"       +cflags
-        if ((_WASM_)); then
-            # ...
-        elif ((_DARWIN_)); then
-            pkg "nanovg_metal" +cflags
-            soa+ cflags "-ObjC" \
+        # bld gfx runtime flags
+        arr+ cflags "-DGFX_ENV" "-DGFX_SDL"
+        ((BLD_GL)) && {
+            arr+ cflags "-DGFX_GL=${BLD_GL}"
+        }
+        ((BLD_GLES)) && {
+            arr+ cflags "-DGFX_GLES=${BLD_GLES}"
+        }
+        ((BLD_WEBGL)) && {
+            arr+ cflags "-DGFX_WEBGL=${BLD_WEBGL}"
+        }
+        ((BLD_METAL)) && {
+            arr+ cflags "-DGFX_METAL=${BLD_METAL}"
+        }
+        # bld gfx os flags
+        ((BLD_MAC)) && {
+            arr+ cflags "-ObjC" \
+                "-DGFX_MAC=${BLD_MAC}" \
                 "-D_NATIVE_OBJC_EXCEPTIONS" \
                 "-mmacosx-version-min=10.13"
-        else
-            soa+ cflags "-no-pie"
-        fi
-        # soa+ cflags
-
+        }
+        ((BLD_LINUX)) && {
+            arr+ cflags "-no-pie" \
+                "-DGFX_LINUX=${BLD_LINUX}"
+        }
     }
-    \ +lflags () {
+    \ +lflags ()
+    {
         pkg "sdl2"      +lflags
         pkg "nanovg"    +lflags
-        if ((_WASM_)); then
-            # ...
-        elif if ((_DARWIN_)); then
+        if ((BLD_METAL)); then
             pkg "nanovg_metal" +lflags
-            soa+ lflags \
+            arr+ lflags -framework Metal
+        fi
+        #  platform targets
+        if ((BLD_WEBGL)); then
+            # ...
+        elif ((BLD_MAC)); then
+            arr+ lflags \
                 -lobjc \
                 -framework Foundation \
                 -framework AppKit \
                 -framework QuartzCore \
-                -framework Cocoa \
-                -framework Metal \
-                -framework OpenGL \
-                -lGLEW
-        else
-            soa+ lflags \
+                -framework Cocoa
+            if ((BLD_GL)); then
+                arr+ lflags \
+                    -framework OpenGL \
+                    -lGLEW
+            fi
+        elif ((BLD_GL)); then
+            arr+ lflags \
                     -lGL -lGLU -lGLEW
         fi
     }
-    \ build () {
+    \ build ()
+    {
         echo hello $1
     }
-    \ install () {
-        rm -rf "${USR}/include/gfx"
-        mkdir -p "${USR}/include/gfx"
-        cp ./*.h "${USR}/include/gfx"
+    \ install ()
+    {
+        rm -rf "${PREFIX}/include/gfx"
+        mkdir -p "${PREFIX}/include/gfx"
+        cp "$wd"/*.h "${PREFIX}/include/gfx"
     }
 }

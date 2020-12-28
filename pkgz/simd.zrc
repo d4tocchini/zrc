@@ -1,10 +1,8 @@
 
 pkg\ simd () {
-
-    __install__ () {
+    : wd "${PWD}/simd"
+    __install__ ()
+    {
         git clone https://github.com/d4tocchini/simd.git
     }
-
-    : wd "$PWD"/simd
-
 }

@@ -6,46 +6,68 @@ pkg\ tcc () {
 -I${PREFIX}/include \
 -I${PWD} \
 "
-
-    __install__ () {
+    : wd "${PWD}/tcc"
+    __install__ ()
+    {
         git clone https://github.com/d4tocchini/tcc.git
-        pushd tcc
-            git checkout mob
-            git pull
+        pushd -q tcc
             git remote add up git://repo.or.cz/tinycc.git
         popd
+        @ pull
     }
-
-    : wd "$PWD"/tcc
-    \ +lflags () {
-        soa+ lflags -L"${USR}/lib" -ltcc
+    \ pull ()
+    {
+        @ cd
+        git checkout mob
+        git pull
+    }
+    \ +lflags ()
+    {
+        arr+ lflags -L"${PREFIX}/lib" -ltcc
             # -lc -ldl -lz
     }
-    \ +cflags () {
+    \ +cflags ()
+    {
         # TODO: -I/usr/tcc/include
-        # soa+ cflags -I"${USR}/include"
+        # arr+ cflags -I"${USR}/include"
     }
-    \ help () {
+    \ help ()
+    {
         echo "tcc configure , make , install   "
         echo
         echo "By default, tcc is installed in `/usr/local/bin`."
         echo "`./configure --help`  shows configuration options."
     }
-    \ configure () {
-        # if ((_DARWIN_)) &&
+    \ install-if-needed ()
+    {
+        if [[ ! -f "$PREFIX/bin/tccrun" ]]; then
+            @ configure
+            @ make
+            @ install
+        fi
+    }
+    \ configure ()
+    {
+        @ cd
+        # if ((OS_MAC)) &&
         #     argv+=--sysincludepaths="${MACOS_SDK_PATH}/usr/include:{B}/include"
             # :${PREFIX}/include:${PREFIX}/lib/tcc/include
-        CC=clang $CONFIGURE $argv
+        CC=clang MAKE=$MAKE ./configure --prefix="$PREFIX" $argv
     }
-    \ make () {
+    \ make ()
+    {
+        @ cd
         CC=clang $MAKE $argv
     }
-    \ install () {
-        $MAKE install $argv
-        echo "#!/bin/sh" > "$USR"/bin/tccrun
-        echo "exec "$USR"/bin/tcc -run \${@}" >> "$USR"/bin/tccrun
-        chmod +x "$USR"/bin/tccrun
-        echo "-> \"$USR/bin\" : tccrun"
+    \ install ()
+    {
+        @ cd
+        CC=clang $MAKE install $argv
+
+        echo "#!/bin/sh" > "$PREFIX"/bin/tccrun
+        echo "exec "$PREFIX"/bin/tcc -run \${@}" >> "$PREFIX"/bin/tccrun
+        chmod +x "$PREFIX"/bin/tccrun
+        echo "-> \"$PREFIX/bin\" : tccrun"
         # -> "$USR/bin" : tcc
         # -> "$USR/lib/tcc" : libtcc1.a bcheck.o bt-exe.o bt-log.o
         # -> "$USR/lib/tcc/include" : ./include/*.h ./tcclib.h
@@ -55,10 +77,14 @@ pkg\ tcc () {
         # -> "$USR/share/info" : tcc-doc.info
         # -> "$USR/share/doc" : tcc-doc.html
     }
-    \ test () {
+    \ test ()
+    {
+        @ cd
         $MAKE test $argv
     }
-    \ clean () {
+    \ clean ()
+    {
+        @ cd
         rm -f "./config.mk"
         $MAKE clean $argv
     }

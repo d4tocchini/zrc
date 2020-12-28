@@ -5,7 +5,7 @@ export MAKE=gmake
 #     [[ ! -f "$1.zwc" ]] || [[ "$1" -nt "$1.zwc" ]] && zcompile $1
 # }
 
-if ((_DARWIN_)) ; then
+if ((OS_MAC)) ; then
     CC=clang
     CXX=clang++
     MAKE=gmake
@@ -60,22 +60,79 @@ fi
 # -O3
 # -pipe
 
+#--------------------------------------------------------------------------------
+# arr: o
+# export oPATH=""
+# o-mount () {
+#     oPATH="`realpath ${1}`"
+# }
+# o- ()
+# {
+# }
+# o-pushd ()
+# {
+#     local dir="$1"
+#     if ((#o))
+# }
+# o-popd ()
+# {
+# }
+
 OFLAGS=()
-CC_SET_OFLAGS () {
-    if ((_WASM_)); then
-        OFLAGS=(-std=gnu2x --memory-init-file 1 -s MIN_WEBGL_VERSION=2 -s USE_WEBGL2=1 -s MAX_WEBGL_VERSION=2 -s FULL_ES3=1)
+
+CC ()
+{
+    CC_SET_OFLAGS;
+    local COMPILER
+    if ((BLD_WEBGL)); then
+        COMPILER="emcc"
+    else
+        COMPILER=$CC
+    fi
+    # pushd "${CC_OUT_DIR:-./}/${CC_TARGET:-}"
+    $COMPILER $OFLAGS -I"$PREFIX"/include -I"$PKGWD" $CFLAGS $argv
+    # popd
+}
+LINK ()
+{
+    CC_SET_OFLAGS;
+    local LINKER
+    if ((BLD_WEBGL)); then
+        LINKER="emcc"
+    else
+        LINKER=$CC
+    fi
+    $LINKER $OFLAGS $LDFLAGS $argv
+}
+CC_SET_OFLAGS ()
+{
+    if ((BLD_WEBGL)); then
+        OFLAGS=(-std=gnu2x --memory-init-file 1 -s MIN_WEBGL_VERSION=2 -s USE_WEBGL2=1 -s MAX_WEBGL_VERSION=2)
+        # -s FULL_ES3=1  # https://emscripten.org/docs/optimizing/Optimizing-WebGL.html#which-gl-mode-to-target
+
         OFLAGS+=(-s ALLOW_MEMORY_GROWTH=1)
         OFLAGS+="-fno-pic"
         OFLAGS+="-fno-pie"
-        OFLAGS+="-Wall"
-        OFLAGS+="-g"
+        # OFLAGS+="-Wall"
+        # OFLAGS+="-g"
         OFLAGS+="-fno-strict-aliasing"
-        OFLAGS+="-O3"
-        # "-mnontrapping-fptoint" # https://emscripten.org/docs/compiling/WebAssembly.html#trapping
+
+        OFLAGS+=("-O3")
+            # --closure 1
+            # https://emscripten.org/docs/optimizing/Optimizing-Code.html#link-times
+
+        # --use-preload-plugins
+
+
+        OFLAGS+=("-mnontrapping-fptoint" "-fno-exceptions")
+            # https://emscripten.org/docs/compiling/WebAssembly.html#trapping
+            # The LLVM wasm backend avoids traps by adding more code around each possible trap (basically clamping the value if it would trap). This can increase code size and decrease speed, if you don’t need that extra code. The proper solution for this is to use newer wasm instructions that do not trap, by calling emcc or clang with -mnontrapping-fptoint. That code may not run in older VMs, though.
+
+
 
         # linker flags
         OFLAGS+=(-s EXPORTED_FUNCTIONS="['_main']")
-        OFLAGS+=(--preload-file "./data")
+        # OFLAGS+=(--preload-file "./data")
         # OFLAGS+="--emrun"
     else
         OFLAGS=(-std=gnu2x -march=native -mtune=native)
@@ -84,31 +141,7 @@ CC_SET_OFLAGS () {
         OFLAGS+="-g"
         OFLAGS+="-fno-strict-aliasing"
         OFLAGS+="-O3"
-        ((_DARWIN_)) &&
+        ((OS_MAC)) &&
             OFLAGS+="-flto=thin" # https://clang.llvm.org/docs/ThinLTO.html
     fi
-}
-
-# cc_out_dir
-
-CC () {
-    CC_SET_OFLAGS;
-    local COMPILER
-    if ((_WASM_)); then
-        COMPILER="emcc"
-    else
-        COMPILER=$CC
-    fi
-    pushd "${CC_OUT_DIR:-./}/${CC_TARGET:-}"
-        $COMPILER $OFLAGS -I"$PREFIX"/include -I"$PKGWD" $CFLAGS $argv
-    popd
-}
-
-LINK () {
-    CC_SET_OFLAGS;
-    local LINKER=$CC
-    if ((_WASM_)); then
-        LINKER="emcc"
-    fi
-    $LINKER $OFLAGS $LDFLAGS $argv
 }

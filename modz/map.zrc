@@ -1,0 +1,48 @@
+
+# map module
+
+# export mapID=""
+# export mapKEY=""
+# export mapVAL=""
+
+alias map:="declare -Ag"
+alias map.clear="declare -Ag"
+
+map-help ()
+{
+    echo '
+map [WIP...]
+'
+}
+map-clear-each ()
+{
+    while (($#argv)); do
+        map.clear "$1"
+        # TODO: exporta ?
+        shift;
+    done
+}
+map.set () # id, key, val
+{
+    eval "${1}[${2}]=${3}"
+}
+map.unset () # id key
+{
+    unset "${1}[${2}]"
+}
+map.touch ()
+{
+    [[ ! -v "$1" ]] && map.clear "$1";
+}
+
+map-test ()
+{
+    map: foo bar # declare 2 arrays foo & bar
+    map.set foo x 1
+    map.set foo y 2
+    map.set bar x 3
+    echo "${foo[x]} == 2"
+    echo "${#bar} == 0"
+    arr: foo bar # reset
+    echo "${#foo} == 0"
+}

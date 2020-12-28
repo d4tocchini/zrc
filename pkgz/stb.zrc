@@ -1,10 +1,8 @@
 
 pkg\ stb () {
-
-    __install__ () {
+    : wd "${PWD}/stb"
+    __install__ ()
+    {
         git clone https://github.com/d4tocchini/stb.git
     }
-
-    : wd "$PWD"/stb
-
 }

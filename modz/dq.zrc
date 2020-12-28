@@ -1,0 +1,72 @@
+
+# see https://github.com/TomWright/dasel
+
+# WARNING: xml to json not reliant
+# echo '<data>                                                                          3:21:08
+#     <users primary="true">
+#         <name>Tom</name>
+#     </users>
+#     <users primary="false">
+#         <name>Frank</name>
+# <id>asdfasf</id>
+# <name>asdf</name>
+#     </users>
+# </data>' | dq -r xml -w json
+# =======>
+# {
+#   "data": {
+#     "users": [
+#       {
+#         "-primary": "true",
+#         "name": "Tom"
+#       },
+#       {
+#         "-primary": "false",
+#         "id": "asdfasf",
+#         "name": [
+#           "Frank",
+#           "asdf"
+#         ]
+#       }
+#     ]
+#   }
+# }
+
+dq ()
+{
+    dq-install
+    ((?^1)) && {
+        fn.delete dq
+        dq $argv
+        return 0
+    }
+    return 1
+}
+dq-reinstall ()
+{
+    dq-uninstall
+    dq-install
+}
+dq-install ()
+{
+    local bin="$PREFIX"/bin/dq
+    [[ -f "$bin" ]] && {
+        return 0
+    }
+    # TODO: loading indicator
+    ((OS_MAC)) && {
+        curl -s https://api.github.com/repos/tomwright/dasel/releases/latest | grep browser_download_url | grep macos_amd64 | cut -d '"' -f 4 | wget -qi - && mv dasel_macos_amd64 dasel && chmod +x dasel
+        mv -f ./dasel "$bin"
+        return 0
+    }
+    ((OS_LINUX)) && { # Linux amd64
+        curl -s https://api.github.com/repos/tomwright/dasel/releases/latest | grep browser_download_url | grep linux_amd64 | cut -d '"' -f 4 | wget -qi - && mv dasel_linux_amd64 dasel && chmod +x dasel
+        mv -f ./dasel "$bin"
+        return 0
+    }
+    return 1
+}
+dq-uninstall ()
+{
+    rm -f "$PREFIX"/bin/dasel
+}

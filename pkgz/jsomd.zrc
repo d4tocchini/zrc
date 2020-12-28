@@ -1,0 +1,9 @@
+
+
+pkg\ jsomd () {
+    : wd "${PWD}/stb"
+    __install__ ()
+    {
+        git clone https://github.com/d4tocchini/jsomd.git
+    }
+}
