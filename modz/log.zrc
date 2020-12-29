@@ -1,0 +1,17 @@
+# # dump stack trace on error
+# function _oops(){
+# 	local frame=0
+# 	while caller $((frame++)) >&2
+# 	do :
+# 	done
+# 	exit 1
+# }
+# trap _oops ERR
+# set -e -u -E -o pipefail
+
+_logpfx=""
+function log: ()
+{
+	echo "\n:$_logpfx:▶︎ $@" >&2
+	time "$@"
+}

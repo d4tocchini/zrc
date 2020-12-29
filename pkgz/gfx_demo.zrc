@@ -112,6 +112,7 @@ pkg\ gfx_demo () {
 
         microui +cflags
         # lg +cflags , +lflags
+
         CC $cflags $lflags -o $ofile $argv
     }
     # functions

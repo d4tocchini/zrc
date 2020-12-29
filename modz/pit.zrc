@@ -5,7 +5,66 @@ pit ()
 {
     local cwd="$PWD"
     {
-        pkg "$1" cd
-        git $argv[2,-1]
+        pkg-pushid $1
+        (( ! $#wd )) && \
+            return 1;
+        shift
+
+        case $1 in
+            commit-set) # commit
+                git.commit-set $wd $2
+            ;;
+            commit-fetch) # commit, repo
+                git.commit-fetch "$wd" $2 $3
+            ;;
+            commit-update) # commit, varname, srcfile
+                # TODO:  $wd $2 "$PKGZ_DIR/$PKG"
+                git.commit-update "$wd" $2 $3
+            ;;
+            *)
+                pkg "$1" cd
+                git $argv[2,-1]
+            ;;
+        esac
     } always { cd "$cwd" }
+}
+# args: dir, commit
+function git.set-commit()
+{
+	(
+        cd $1
+		log: git reset --hard "$2"
+		log: git clean -f -d
+		log: touch "$2"
+	)
+}
+
+# args: dir, commit, repo
+function git.commit-fetch ()
+{
+	[ -r "$1/$2" ] && return
+	(
+		if cd "$1" 2>/dev/null; then
+			if ! git show --quiet "$2" >/dev/null; then
+				log: git pull
+			fi
+		else
+			log: git clone "$3" "$1"
+			cd "$1"
+		fi
+	)
+	git.set-commit "$1" "$2"
+}
+
+# args: dir, varname, srcfile
+function git.commit-update()
+{
+	local c
+	c=`cd "$1" && log: git pull >&2 && git rev-parse HEAD`
+	[ -r "$1/$c" ] && \
+        return 0
+	git.set-commit "$1" "$c"
+    # TODO:
+	# log: sed -i~ "s/^$2=.*\$/$2=$c/" "$3"
+	printf -v "$2" "$c"
 }

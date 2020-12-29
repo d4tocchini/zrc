@@ -34,6 +34,7 @@ fi
 # pkg's with `sh autogen.sh`, like freetype2 depends on
 #   automake (1.10.1) libtool (2.2.4) autoconf (2.62)
 
+mod log
 mod os
 mod str
 mod arr

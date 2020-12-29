@@ -307,7 +307,6 @@ pkg-popd ()
 }
 pkg-pushid ()
 {
-
     # current pkg name
     if [[ $PKG != $1 ]] ; then
         PKG="$1";

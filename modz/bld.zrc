@@ -92,9 +92,9 @@ bld-env ()
     local _env_="-${BLD_ENV}-"
     # developer build flags
     BLD_DEV=0
-    case $BLD_ENV in
+    case $_env_ in
         *-dev-*) BLD_DEV=1 ;;
-        *-debug-*) BLD_ENV_DEV=2 ;;
+        *-debug-*) BLD_DEV=2 ;;
     esac
     # graphics build flags
     BLD_GL=0
@@ -113,7 +113,6 @@ bld-env ()
         *-metal-*)  BLD_METAL=1 ;;
         *-vulkan-*) BLD_VULKAN=1 ;;
         *)          ;;
-        # mac*) BLD_ENV_MAC=105 ;
     esac
     # OS build flags
     BLD_MAC=0
@@ -122,8 +121,8 @@ bld-env ()
     case $_env_ in
         *-web*)     ;;
         *-mac11-*)  BLD_MAC=11 ;;
-        *-mac*)     BLD_MAC=10 ;;
-        *-lin*)     BLD_LINUX=1 ;;
+        *-mac-*)     BLD_MAC=10 ;;
+        *-linux-*)     BLD_LINUX=1 ;;
     esac
 }
 bld-run ()
