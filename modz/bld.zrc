@@ -36,10 +36,11 @@ bld ()
         shift;
     done
     if which "$cmd" >/dev/null; then
-        "$cmd" "$argv"
-    else
-        echo "bld: unrecognized command: ${cmd}"
+        "$cmd" $argv
+        return $?
     fi
+    echo "bld: unrecognized command: ${cmd}"
+    return 1
 }
 bld-help ()
 {
@@ -47,22 +48,22 @@ bld-help ()
 
     bld [opts] cmd [argv]
 
-    opts
+    opts:
         -mount $BLD_PREFIX
         -p $BLD_PROJ
         -e $BLD_ENV
         -h
 
-    cmds
+    cmds:
         cd, pushd, popd
         run, open, close
 
-    functional api
+    functional api:
         bld-mount /usr/local
         bld-env webgl2
         bld-proj hello-world
         bld-cd
-    will set \$PWD to "/usr/local/hello-world/webgl2"
+        # ==> cd "/usr/local/hello-world/webgl2"
 ===
 }
 
@@ -129,15 +130,14 @@ bld-run ()
 {
     # TODO:
     bld-mkdirp
-
     local tgt="${bwd}/${1}"
-    [[ ! -f "${bwd}/${1}" ]] && {
-        echo "bld can't run \"${bwd}/${1}\""
+    [[ ! -f "${tgt}" ]] && {
+        echo "bld can't run \"${tgt}\""
         return 1
     }
     {
         bld-pushd
-        "./${1}"
+        "./${1}" ${argv[2,-1]}
     } always {
         bld-popd
     }

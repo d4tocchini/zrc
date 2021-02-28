@@ -18,8 +18,8 @@ pkg\ lite () {
     }
     \ build-lua () {
         arr: cflags lflags
-        gfx +cflags , +lflags
-        lite +cflags-src
+        pkg "gfx" +cflags , +lflags
+        pkg "lite" +cflags-src
 
         local PIDS=()
 
@@ -45,8 +45,8 @@ pkg\ lite () {
     }
     \ build () {
         arr: cflags lflags
-        gfx +cflags , +lflags
-        lite +cflags-src
+        pkg "gfx" +cflags , +lflags
+        pkg "lite" +cflags-src
 
         @ cd
 

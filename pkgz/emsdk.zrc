@@ -3,7 +3,11 @@ export __emsdk_uses_latest__=0
 # export EMSDK_PYTHON="`which python3`"
 pkg\ emsdk () {
     : wd "$PWD/emsdk"
-    __install__()
+    __init__ ()
+    {
+        @ alias
+    }
+    __install__ ()
     {
         # macos deps: Xcode Command Line Tools, git, cmake
         git clone "https://github.com/emscripten-core/emsdk.git"

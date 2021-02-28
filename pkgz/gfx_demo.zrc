@@ -32,8 +32,9 @@
 # }
 
 pkg\ gfx_demo () {
-    # req gfx
     : wd "$PWD/gfx_demo"
+    : deps "gfx" "microui" "tcc" "lg"
+
     : TARGETS "1 2 3 4 5 6 7"
     : 1 "$wd/1_hello.c"
     : 2 "$wd/2_nvg.c"
@@ -42,18 +43,18 @@ pkg\ gfx_demo () {
     : 5 "$wd/5_lg.c"
     : 6 "$wd/6_tcc.c"
     : 7 "$wd/7_via.c"
+    __init__ ()
+    {
+        @ alias
+    }
     __install__ ()
     {
         git clone https://github.com/d4tocchini/gfx_demo.git
     }
-    __init__ ()
-    {
-
-    }
     \ make ()
     {
         arr: cflags lflags
-        gfx +cflags , +lflags
+        pkg "gfx" +cflags , +lflags
         @proto make $argv;
     }
     \ 1 ()
@@ -69,25 +70,25 @@ pkg\ gfx_demo () {
     \ 3 ()
     {
         @ cd
-        microui +cflags
+        pkg "microui" +cflags
         CC $cflags $lflags -o $cmd $argv
     }
     \ 4 ()
     {
-        microui +cflags
+        pkg "microui" +cflags
         CC $cflags $lflags -o $cmd $argv
     }
     \ 5 ()
     {
-        microui +cflags
-        lg +cflags , +lflags
+        pkg "microui" +cflags
+        pkg "lg" +cflags , +lflags
         CC $cflags $lflags -o $cmd $argv
     }
     \ 6 ()
     {
         @ cd
-        tcc +cflags , +lflags
-        lg +cflags , +lflags
+        pkg "tcc" +cflags , +lflags
+        pkg "lg" +cflags , +lflags
         CC $cflags $lflags -o $cmd $argv
     }
     \ 7 ()
@@ -110,8 +111,8 @@ pkg\ gfx_demo () {
         fi
         # bld-proj-target $ofile
 
-        microui +cflags
-        # lg +cflags , +lflags
+        pkg "microui" +cflags
+        # pkg "lg" +cflags , +lflags
 
         CC $cflags $lflags -o $ofile $argv
     }

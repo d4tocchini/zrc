@@ -36,24 +36,32 @@ pkg-mount ()
     mkdir -p "$1"
     PKGWD="`realpath ${1}`"
 }
+pkg-needs-init ()
+{   # TODO:
+    return 0;
+}
 pkg-needs-install ()
 {
-    if [[ -d "${PKGWD}/${1}" ]] ; then
-        return 0;
-    else
-        return 1;
-    fi
+    [[ ! -d "${PKGWD}/${1}" ]] ;
+    return $?;
 }
-pkg-needs-init () # TODO:
-{
-    return 1;
-}
-pkg-reload ()
-{
-
-}
+# pkg-install-p ()
+# {
+#     while (($#argv)) ; do
+#         if pkg-needs-install "$1"; then
+#             pkg-install "$1"
+#         fi
+#         shift
+#     done
+# }
+_PKG_INSTALLING_LIST=()
 pkg-install ()
 {
+    if (($#PKGWD == 0)); then
+        pkg-mount "./pkg"
+    fi
+    _PKG_INSTALLING_LIST=($argv)
+
     ":" ()
     {
         print "\t\t: $1"
@@ -62,7 +70,12 @@ pkg-install ()
             shift;
             eval "pkg_${_NAME_}[$key]=\"$argv\";"
             case $key in
-                wd) wd="$argv" ;;
+                wd)
+                    wd="$argv"
+                ;;
+                deps)
+                    arr.add _PKG_INSTALLING_LIST $argv
+                ;;
             esac
         fi
     }
@@ -96,11 +109,11 @@ pkg-install ()
 
     pushd "$PKGWD"
     {
-        while (($#argv)) ; do
-            _pkg-install "$1"
-            shift
+        local i=1
+        while (($i <= $#_PKG_INSTALLING_LIST)) ; do
+            _pkg-install "${_PKG_INSTALLING_LIST[$i]}"
+            ((++i))
         done
-
         # got_error
         # local err=0
         # local i=0
@@ -125,6 +138,7 @@ pkg-install ()
     echo "|\npkg [" ${=PKGS} "]"
     unset -f ":"
     unset -f "name:"
+    _PKG_INSTALLING_LIST=()
 }
 _pkg-install ()
 {
@@ -275,6 +289,14 @@ pkg:proto:popd ()
     pkg-popd
     PKG_RETURN_DIR="$PWD"
 }
+pkg:proto:alias ()
+{
+    pkg-alias "$PKG"
+}
+pkg:proto:unalias ()
+{
+    pkg-unalias "$PKG"
+}
 
 # ----------------------------------------------------
 
@@ -329,7 +351,19 @@ pkg-popid ()
         # alias @="pkg $PKG"
     }
 }
-
+pkg-alias ()
+{
+    if (( ! $#functions[pkg_${1}] )) ; then
+        eval "\"${1}\" () { pkg \"$1\" \$argv }"
+        # TODO: exportf "${_NAME_}"
+    fi
+}
+pkg-unalias ()
+{
+    if (( $#functions[pkg_${1}] )) ; then
+        unset -f "pkg_${1}"
+    fi
+}
 # ----------------------------------------------------
 
 __pkg-process-defs ()
@@ -362,11 +396,7 @@ ___pkg-def ()
             }
         done
 
-        # check if fn already exists? TODO: do better...
-        if (( ! $#functions[pkg_${_NAME_}] )) ; then
-            eval "\"${_NAME_}\" () { pkg \"$_NAME_\" \$argv }"
-            # TODO: exportf "${_NAME_}"
-        fi
+
                                         #TODO: throw / catch http://info2html.sourceforge.net/cgi-bin/info2html-demo/info2html?(zsh)Exception%2520Handling#:~:text=Note%20that%20as%20exceptions%20are,name%20of%20the%20exception%20caught.
 
 
@@ -420,11 +450,10 @@ _pkg:END ()
     local _id="$PKG"
     {
         type __install__ >/dev/null
-        echo "pkg-has-install" $_id " PWD=" $PWD
+        # echo "pkg-has-install" $_id " PWD=" $PWD
         if (( $? == 0 )) ; then
-            echo "pkg-needs-install" $_id
-            pkg-needs-install "$_id"
-            if (( $? == 1 )) ; then
+            if pkg-needs-install "$_id" ; then
+                echo "      pkg \"$_id\" installing ..."
                 # alias @="pkg ${_id}"
                 __install__
                 # eval "@ () { pkg ${_id} \$argv }"
@@ -432,14 +461,15 @@ _pkg:END ()
                 # $(__install__) &
                 # _PKG_LOADING_PIDS+=($!)
                 # unset -f @
+            # else
+            #     echo "  pkg \"$_id\" already installed"
             fi
             unset -f __install__ 2>/dev/null
         fi
 
         type __init__ >/dev/null
         if (( $? == 0 )) ; then
-            pkg-needs-init "$_id"
-            if (( $? == 1 )) ; then
+            if pkg-needs-init "$_id" ; then
                 # alias @="pkg ${_id}"
                 __init__
             fi

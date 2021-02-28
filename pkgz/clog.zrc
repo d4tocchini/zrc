@@ -1,0 +1,13 @@
+
+pkg\ clog () {
+    # A simple logging library implemented in C99
+    : wd "${PWD}/clog"
+    __install__ ()
+    {
+        git clone https://github.com/d4tocchini/clog.git
+    }
+    \ +cflags ()
+    {
+        arr+ cflags -I"${wd}"
+    }
+}

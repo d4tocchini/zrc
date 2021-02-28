@@ -5,6 +5,10 @@ pkg\ nanovg_metal () {
     {
         git clone https://github.com/d4tocchini/nanovg_metal
     }
+    __init__ ()
+    {
+        @ alias
+    }
     \ +lflags ()
     {
         arr+ lflags -framework Metal

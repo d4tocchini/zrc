@@ -1,0 +1,10 @@
+async ()
+{
+    eval "{
+        $argv
+    } &"
+}
+await ()
+{
+
+}

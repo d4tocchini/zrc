@@ -1,0 +1,44 @@
+
+pkg\ zlib_ng () {
+    : wd "$PWD/zlib_ng"
+    __install__ ()
+    {
+        git clone https://github.com/d4tocchini/zlib-ng zlib_ng
+        @ pull
+    }
+    \ +lflags ()
+    {
+        arr+ lflags -L"$PREFIX/lib" -lz
+        # arr+ lflags -lz -pthread -llmdb
+    }
+    \ +cflags ()
+    {
+        # arr+ cflags -I"$wd/lib" -I"$wd/deps/lmdb/libraries/liblmdb" \
+        #     -fPIC -Wunused-variable -Wunused-but-set-variable
+    }
+    \ configure ()
+    {
+        @ cd
+        ./configure --zlib-compat --native --static --prefix="$PREFIX" $argv
+    }
+    \ build ()
+    {
+        @ make
+        @ make install prefix="$PREFIX"
+            # DESTDIR="/subdir/xxx/"
+    }
+    \ clean ()
+    {
+        @ make clean
+    }
+    \ test ()
+    {
+        @ make test
+    }
+    \ make ()
+    {
+        @ cd
+        echo $PWD
+        $MAKE -j $argv
+    }
+}

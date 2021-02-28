@@ -1,11 +1,12 @@
 
 
 export CC_COMPILER
+export CC_XXCOMPILER
 export CC_LINKER
 export CC_CFLAGS
 export CC_LDFLAGS
 export MAKE=gmake
-
+# AR	= ar
 if ((OS_MAC)) ; then
     CC=clang
     CXX=clang++
@@ -25,8 +26,9 @@ else
 fi
 
 alias CC_ENV='CC_EXPORT && \
-    CC="$CC" CXX="$CXX" MAKE="$MAKE" \
-    CFLAGS="$CC_CFLAGS" LDFLAGS="$CC_LDFLAGS"'
+    CC="$CC_COMPILER" CXX="$CC_XXCOMPILER" MAKE="$MAKE" \
+    CFLAGS="$CC_CFLAGS $CFLAGS -I${PREFIX}/include -I${PKGWD}" \
+    LDFLAGS="$CC_LDFLAGS"'
 
 CC ()
 {
@@ -41,16 +43,20 @@ LINK ()
 
 CC_EXPORT ()
 {
-    CC_CFLAGS=" -fno-math-errno -fno-signed-zeros"
+    CC_CFLAGS=" -fno-math-errno -fno-signed-zeros -fno-trapping-math"
         # -fno-strict-aliasing
     CC_LDFLAGS=""
+
+    local W=""
 
     if ((BLD_WEBGL)); then
         CC_COMPILER="emcc"
         CC_LINKER="emcc"
+        CC_XXCOMPILER="em++"
     else
-        CC_COMPILER=$CC
-        CC_LINKER=$CC
+        CC_COMPILER="$CC"
+        CC_LINKER="$CC"
+        CC_XXCOMPILER="$CXX"
     fi
 
     if ((BLD_DEV)); then
@@ -58,15 +64,33 @@ CC_EXPORT ()
     else
         # https://gcc.gnu.org/onlinedocs/gcc-4.9.1/gcc/Optimize-Options.html
         if ((BLD_WEBGL)); then
-            CC_CFLAGS+=" -O3 -mnontrapping-fptoint -fno-exceptions"
+            CC_CFLAGS+=" -O3 -ffast-math -mnontrapping-fptoint -fno-exceptions"
                 # https://emscripten.org/docs/compiling/WebAssembly.html#trapping
                 # The LLVM wasm backend avoids traps by adding more code around each possible trap (basically clamping the value if it would trap). This can increase code size and decrease speed, if you don’t need that extra code. The proper solution for this is to use newer wasm instructions that do not trap, by calling emcc or clang with -mnontrapping-fptoint. That code may not run in older VMs, though.
             CC_CFLAGS+=" --closure 1"
                 # https://emscripten.org/docs/optimizing/Optimizing-Code.html#link-times
+            # `-s ASSERTIONS=2` now implies `-s STACK_OVERFLOW_CHECK=2`. Previously only
+            # `-s ASSERTIONS=1` implied `-s STACK_OVERFLOW_CHECK=1`.
         else
-            CC_CFLAGS+=" -Ofast"
+            CC_CFLAGS+=" -Ofast -ffast-math"
         fi
+
+        # -ffast-math
+            # implied by: -Ofast; includes: -D__FAST_MATH__ -fno-math-errno, -funsafe-math-optimizations, -ffinite-math-only, -fno-rounding-math, -fno-signaling-nans, -fcx-limited-range and -fexcess-precision=fast.
+            # -funsafe-math-optimizations # required by at least NEON
+        # -fsingle-precision-constant causes floating-point constants to be loaded in single precision even when this is not exact. This avoids promoting operations on single precision variables to double precision like in x + 1.0/3.0. Note that this also uses single precision constants in operations on double precision variables. This can improve performance due to less memory traffic.
+        # -freciprocal-math in GCC changes the following code `double a = b / c;` to  `double tmp = 1/c; double a = b * tmp;`
+        # https://gcc.gnu.org/wiki/FloatingPointMath
+        # https://gcc.gnu.org/wiki/Math_Optimization_Flags
+
+        # -osuperfast https://gist.github.com/htfy96/eb85d146fa5eed981e158a3036651730
+        # CXXFLAGS="-ffast-math -fdevirtualize-speculatively  -fassociative-math -freciprocal-math -fno-signed-zeros -fno-trapping-math -fipa-pta -mrecip=all -fgcse-sm -fgcse-las -fgcse-after-reload -march=native  -ftree-vectorize -floop-interchange -floop-block -ftree-coalesce-vars -floop-nest-optimize -fgraphite-identity -ftree-loop-ivcanon -fivopts" LDFLAGS="-ffast-math -fdevirtualize-speculatively"
+
+        # Clang hidden options https://gist.github.com/WingTillDie/f636de6e37947c2d23bf7400d6f24911
+
     fi
+
+
 
 
     if ((BLD_WEBGL)); then
@@ -74,6 +98,20 @@ CC_EXPORT ()
         # -s FULL_ES3=1  # https://emscripten.org/docs/optimizing/Optimizing-WebGL.html#which-gl-mode-to-target
         CC_CFLAGS+=" -s ALLOW_MEMORY_GROWTH=1"
         CC_CFLAGS+=" -fno-pic -fno-pie -fno-strict-aliasing"
+        CC_CFLAGS+=" -msimd128" #-msse<version> -msse -msse2 , -msse -msse3
+            # NOTE: `-s SIMD=1` is obsolete
+            # to enable SIMD, pass the -msimd128 flag at compile time. This will also turn on LLVM’s autovectorization passes, so no source modifications are necessary to benefit from SIMD.
+            # Node requires –experimental-wasm-simd
+            # Asymmetric memory fence operations are not available, but will be implemented as fully synchronous memory fences when SharedArrayBuffer is enabled (-s USE_PTHREADS=1) or as no-ops when multithreading is not enabled (default, -s USE_PTHREADS=0).
+            # use x86 SSE by passing the -msse directive to the compiler and including the header <xmmintrin.h>
+            # use ARM NEON by passing the -mfpu=neon directive to the compiler, and including the header <arm_neon.h>.
+                # In terms of performance, it is very important to note that only instructions which operate on 128-bit wide vectors are supported cleanly. This means that nearly any instruction which is not of a “q” variant (i.e. “vaddq” as opposed to “vadd”) will be scalarized.
+                # These are pulled from SIMDe repository on Github. To update emscripten with the latest SIMDe version, run tools/simde_update.py.
+        # -s MINIMAL_RUNTIME=1
+
+            # https://emscripten.org/docs/porting/simd.html#compiling-simd-code-targeting-x86-sse-instruction-set
+            # https://github.com/emscripten-core/emscripten/issues/11004
+            # https://github.com/llvm/llvm-project/blob/master/clang/lib/Headers/wasm_simd128.h
         # --use-preload-plugins
 
         # linker flags

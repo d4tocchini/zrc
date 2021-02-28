@@ -1,9 +1,14 @@
 
 pkg\ gfx () {
     : wd "$PWD"/gfx
+    : deps "sdl2" "nanovg" "nanovg_metal" "stb"
     __install__ ()
     {
         git clone https://github.com/d4tocchini/gfx.git
+    }
+    __init__ ()
+    {
+        @ alias
     }
     \ +cflags ()
     {

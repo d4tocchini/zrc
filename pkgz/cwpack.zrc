@@ -1,0 +1,14 @@
+
+# a lightweight and yet complete implementation of the MessagePack serialization format version 5. It also supports the Timestamp extension type.
+
+pkg\ cwpack () {
+    : wd "${PWD}/cwpack"
+    __install__ ()
+    {
+        git clone https://github.com/d4tocchini/cwpack.git
+    }
+    \ +cflags ()
+    {
+        arr+ cflags -I"${wd}/src"
+    }
+}

@@ -1,0 +1,86 @@
+# https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/node@12.rb
+
+NODE_DIST_URL="https://nodejs.org/dist/"
+https://bintray.com/homebrew/bottles/download_file?file_path=node-12.8.1.high_sierra.bottle.tar.gz
+ node-12.8.1.mojave.bottle.tar.gz
+ node-12.8.1.sierra.bottle.tar.gz
+
+pkg\ node () {
+    : wd "${PWD}/node"
+    : homepage "https://nodejs.org/"
+    # : deps "pkg-config" "python3" "icu4c" "curl"
+        #   depends_on "pkg-config" => :build
+        #   depends_on "python@3.9" => :build
+        #   depends_on "icu4c"
+    __install__ ()
+    {
+        mkdir -p "node"
+    }
+    __init__ ()
+    {
+    }
+    \ use ()
+    {
+        echo $wd
+        local ver="${1}"
+        [[ -d "$wd/$ver" ]] && {
+            return 0
+        }
+        [[ -d "$wd/src_$ver" ]] && {
+            @ build $1
+            return $?
+        }
+        @ fetch $1 && @ build $1
+        return $?
+    }
+    \ clear ()
+    {
+        local ver="${1}"
+        if (($#ver)); then
+            rm -rf "$wd/${ver}"
+            rm -rf "$wd/src_${ver}"
+        fi
+    }
+    \ fetch ()
+    {
+        local ver="${1}"
+
+        {
+            cd "$wd"
+            mkdir -p "src_${ver}"
+            curl -L "${NODE_DIST_URL}/v${ver}/node-v${ver}.tar.gz" | tar -xz -C "./src_${ver}"
+        } always {
+            local fail=$?
+            if (( $fail )) then
+                rm -rf "src_${ver}"
+            fi
+        }
+        return $fail
+    }
+    \ build ()
+    {
+        local ver="${1}"
+        {
+            cd "$wd"
+            mkdir -p "${ver}"
+            cd "src_${ver}/node-v${ver}"
+            local py="python3"
+            MAKE="gmake -j " PYTHON="${py}" $py configure.py --prefix="$wd/$ver" && \
+                MAKE="gmake -j " gmake -j install
+                # JOBS=4
+            local fail=$?
+        } always {
+            if (( $fail )); then
+                cd "$wd"
+                rm -rf "${ver}"
+            else
+                # rm -rf "src_${ver}"
+            fi
+        }
+        return $fail
+    }
+    \ versions ()
+    {
+        curl -L "${NODE_DIST_URL}/" | cat
+    }
+}

@@ -1,0 +1,15 @@
+
+# C TEMPLATE LIBRARY (CTL)
+# https://github.com/glouw/ctl/wiki
+
+pkg\ ctl () {
+    : wd "${PWD}/ctl"
+    __install__ ()
+    {
+        git clone https://github.com/d4tocchini/ctl.git
+    }
+    \ +cflags ()
+    {
+        arr+ cflags -I"${wd}"
+    }
+}

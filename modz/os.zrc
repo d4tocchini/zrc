@@ -1,13 +1,17 @@
 
 export OS_DARWIN=0
 export OS_MAC=0
+export OS_MAC_V=""
 export OS_LINUX=0
 export OS_WIN=0
 function ()
 {
     local uname=$(uname -s)
     case $uname in
-        Darwin) OS_DARWIN=1; OS_MAC=1; ;;
+        Darwin)
+            OS_DARWIN=1; OS_MAC=1;
+            OS_MAC_V=$(sw_vers | awk '/ProductVersion:/ {print $2}')
+        ;;
         # *) ERROR "modz/os"
     esac
 }

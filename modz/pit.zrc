@@ -22,8 +22,8 @@ pit ()
                 git.commit-update "$wd" $2 $3
             ;;
             *)
-                pkg "$1" cd
-                git $argv[2,-1]
+                cd "$wd"
+                log: git $argv
             ;;
         esac
     } always { cd "$cwd" }

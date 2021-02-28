@@ -3,6 +3,10 @@
 
 pkg\ sdl2 () {
     : wd "$PWD"/SDL2
+    __init__ ()
+    {
+        @ alias
+    }
     __install__ ()
     {
         git clone https://github.com/d4tocchini/SDL2.git

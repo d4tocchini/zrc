@@ -31,6 +31,17 @@ arr.push ()
         shift;
     done
 }
+arr.add ()
+{
+    local ref="$1"
+    shift
+    while (($#argv)); do
+        if ! arr.includes "$ref" $1 ; then
+            arr.push "$ref" $1
+        fi
+        shift
+    done
+}
 arr.touch ()
 {
     [[ ! -v "$1" ]] && arr.clear "$1";
@@ -53,10 +64,13 @@ arr.slice ()
 }
 arr.includes ()
 {
+    local ref="$1"
+    shift
     # [[ ${my_array[(ie)$my_string]} -le ${#my_array} ]] # credit: https://unix.stackexchange.com/questions/411304/how-do-i-check-whether-a-zsh-array-contains-a-given-value
-    eval "[[ \${$1[(ie)$2]} -le \${#$1} ]]"
+    eval "[[ ! \${$ref[(ie)$1]} -le \${#$ref} ]]"
     return $?
 }
+
 # arr+hook ()
 # {
 #     local key="$1"

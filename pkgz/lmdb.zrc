@@ -1,0 +1,43 @@
+
+pkg\ lmdb () {
+    : wd "$PWD/lmdb"
+    __install__ ()
+    {
+        git clone https://github.com/d4tocchini/lmdb.git
+        @ pull
+    }
+    __init__ ()
+    {
+        @ alias
+    }
+    \ +lflags ()
+    {
+        # arr+ lflags -lz -pthread -L"$wd" -llemongraph
+        arr+ lflags -lz -pthread -llmdb
+    }
+    \ +cflags ()
+    {
+        # arr+ cflags -I"$wd/lib" -I"$wd/deps/lmdb/libraries/liblmdb" \
+        #     -fPIC -Wunused-variable -Wunused-but-set-variable
+    }
+    \ build ()
+    {
+        @ make
+        @ make install prefix="$PREFIX"
+            # DESTDIR="/subdir/xxx/"
+    }
+    \ clean ()
+    {
+        @ make clean
+    }
+    \ test ()
+    {
+        @ make test
+    }
+    \ make ()
+    {
+        @ cd libraries/liblmdb
+        echo $PWD
+        $MAKE $argv
+    }
+}

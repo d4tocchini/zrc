@@ -9,9 +9,9 @@
 # trap _oops ERR
 # set -e -u -E -o pipefail
 
-_logpfx=""
 function log: ()
 {
-	echo "\n:$_logpfx:▶︎ $@" >&2
+	echo "\n:${PWD}\n:▶︎ $@" >&2
 	time "$@"
+	return $?
 }

@@ -1,0 +1,54 @@
+
+# mimalloc is a compact general purpose allocator with excellent performance.
+
+pkg\ mimalloc () {
+    : wd "${PWD}/mimalloc"
+    # https://microsoft.github.io/mimalloc/index.html
+    __install__ ()
+    {
+        git clone https://github.com/d4tocchini/mimalloc.git
+    }
+    \ +cflags ()
+    {
+        arr+ cflags -I"${wd}/include"
+    }
+    \ +lflags()
+    {
+        arr+ lflags -lmimalloc
+    }
+    \ build ()
+    {
+        @ cd
+        if [[ -f out/release/libmimalloc.a ]]; then
+            echo mimalloc already built
+            return
+        fi
+        mkdir -p out/release
+        cd out/release
+        # TODO: CC_ENV?
+        CC_ENV cmake ../..
+        CC_ENV $MAKE $argv
+    }
+    \ build-secure ()
+    {
+        @ cd
+        mkdir -p out/secure
+        cd out/secure
+        CC_ENV cmake -DMI_SECURE=ON ../..
+        CC_ENV $MAKE $argv
+    }
+    \ build-debug ()
+    {
+        @ cd
+        mkdir -p out/debug
+        cd out/debug
+        cmake -DCMAKE_BUILD_TYPE=Debug ../..
+        $MAKE $argv
+        # This will name the shared library as libmimalloc-debug.so.
+    }
+    \ clean ()
+    {
+        @ cd
+        rm -rf ./out
+    }
+}

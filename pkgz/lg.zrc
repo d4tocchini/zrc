@@ -1,10 +1,19 @@
 
 pkg\ lg () {
     : wd "$PWD/lg"
+    : deps "lmdb" "mimalloc" "zlib_ng" "cwpack"
+    \ help ()
+    {
+
+    }
     __install__ ()
     {
         git clone https://github.com/d4tocchini/lg.git
         @ pull
+    }
+    __init__ ()
+    {
+        @ alias
     }
     \ pull ()
     {
@@ -13,10 +22,12 @@ pkg\ lg () {
     }
     \ +lflags ()
     {
-        arr+ lflags -lz -pthread -L"$wd" -llemongraph
+        pkg "zlib_ng" +lflags
+        arr+ lflags -pthread -L"$wd" -llemongraph
     }
     \ +cflags ()
     {
+        pkg "mimalloc" +cflags
         arr+ cflags -I"$wd/lib" -I"$wd/deps/lmdb/libraries/liblmdb" \
             -fPIC -Wunused-variable -Wunused-but-set-variable
             # -O3 -Wall
@@ -24,6 +35,32 @@ pkg\ lg () {
     \ make ()
     {
         @ cd
-        make $argv
+        CC_ENV $MAKE $argv
+    }
+    \ test ()
+    {
+        @ cd
+        @ compile "tests/test.c" "tests/test" &&
+            time tests/test
+    }
+    \ bench ()
+    {
+        @ cd
+        @ compile "bench/bench.c" "bench/bench" &&
+            time bench/bench
+    }
+    \ example ()
+    {
+        @ cd
+        @ compile "examples/example.c" "examples/example" &&
+            time examples/example
+    }
+    \ compile ()
+    {
+        # [[ "$1" -nt "$2" ]]
+        arr: lflags cflags
+        @ +lflags , +cflags
+        CC $cflags $lflags "$1" -o "$2"
+        return $?
     }
 }

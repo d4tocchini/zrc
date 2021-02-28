@@ -1,0 +1,94 @@
+
+#  nvm
+#   git clone https://github.com/lukechilds/zsh-nvm.git ~/.zsh-nvm
+#   source ~/.zsh-nvm/zsh-nvm.plugin.zsh
+
+JS_NODE_V
+
+js-help ()
+{
+    cat<<-===
+
+    js [opts] cmd [argv]
+
+    opts:
+        -e FLAG1-FLAG2-...
+        -v VERSION
+        -h
+
+    cmds:
+        cd, pushd, popd
+        run, open, close
+
+    functional api:
+        js-env node
+        js-proj hello-world
+        bld-cd
+    will set \$PWD to "/usr/local/hello-world/webgl2"
+===
+}
+js ()
+{
+    ((#argv == 0)) || [[ $1 = "-h" ]] && {
+        js-help
+        return 0
+    }
+    local cmd=""
+    while ((#argv && #cmd == 0)); do
+        case $1 in
+            -mount) js-mount $2; shift ;;
+            # -p) js-proj $2; shift ;;
+            -e) js-env $2; shift ;;
+            *) cmd="js-$1" ;;
+        esac
+        shift;
+    done
+    if which "$cmd" >/dev/null; then
+        "$cmd" $argv
+        return $?
+    fi
+    echo "js: unrecognized command: ${cmd}"
+    return 1
+}
+js-env ()
+{
+    local _env_="-${1}-"
+    JS_ENV=""
+    case $_env_ in
+        *-node-*)
+            JS_ENGINE="node"
+        ;;
+        *-electron-*)
+            JS_ENGINE+="electron"
+        ;;
+        # *) ;;
+    esac
+    JS_ENV+=${JS_ENGINE}
+    case $_env_ in
+        *-pro)
+            JS_DEV=0
+        ;;
+        *-dev-*)
+            JS_DEV=1
+        ;;
+        *-debug-*)
+            JS_DEV=2
+        ;;
+    esac
+}
+js-v ()
+{
+    local _env_="-${1}-"
+    case $_env_ in
+        *-node-*)
+        *-node-*)
+
+}
+js-install ()
+{
+
+}
+js-use ()
+{
+
+}
