@@ -1,0 +1,39 @@
+
+pkg\ sx () {
+    : wd "${PWD}/sx"
+    __install__ ()
+    {
+        git clone https://github.com/d4tocchini/sx.git
+    }
+    \ build()
+    {
+        rm -rf ./build
+    }
+    \ build()
+    {
+        @ cd
+        mkdir build
+        cd build
+        # TODO:
+        # if [[ "$TRAVIS_OS_NAME" != "windows" ]]; then
+            cmake .. -DCMAKE_BUILD_TYPE=Release;
+            make;
+        # fi
+        # if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
+        #     PATH=$PATH:/c/Program\ Files/CMake/bin;
+        #     cmake .. -G "Visual Studio 15 2017 Win64";
+        #     cmake --build . --config Release --target ALL_BUILD -- -verbosity:m;
+        # fi
+    }
+    \ test()
+    {
+        @ cd
+        if [[ $1 ]] ; then
+            ./build/tests/test-${1}
+        else
+            echo "pkg sx test {jobs, ...}"
+            echo
+            ls ./tests
+        fi;
+    }
+}

@@ -60,26 +60,35 @@ pkg\ gfx_demo () {
     \ 1 ()
     {
         @ cd
+        bld-proj-cd "$PKG"
         CC $cflags $lflags -o $cmd $argv
     }
     \ 2 ()
     {
         @ cd
+        bld-proj-cd "$PKG"
         CC $cflags $lflags -o $cmd $argv
+        pkg "nanovg" cd
+            gcp -rlf "./example/data/" "$bwd"
     }
     \ 3 ()
     {
         @ cd
+        bld-proj-cd "$PKG"
         pkg "microui" +cflags
         CC $cflags $lflags -o $cmd $argv
     }
     \ 4 ()
     {
+        @ cd
+        bld-proj-cd "$PKG"
         pkg "microui" +cflags
         CC $cflags $lflags -o $cmd $argv
     }
     \ 5 ()
     {
+        @ cd
+        bld-proj-cd "$PKG"
         pkg "microui" +cflags
         pkg "lg" +cflags , +lflags
         CC $cflags $lflags -o $cmd $argv
@@ -87,18 +96,29 @@ pkg\ gfx_demo () {
     \ 6 ()
     {
         @ cd
+        bld-proj-cd "$PKG"
         pkg "tcc" +cflags , +lflags
         pkg "lg" +cflags , +lflags
-        CC $cflags $lflags -o $cmd $argv
+
+        gcp -rlf "$wd/data/" "$bwd"
+        local ofile="$cmd";
+        if ((BLD_WEBGL)); then
+            ofile="$ofile".html
+            arr+ lflags "--shell-file" "$wd/shell.html"
+            # arr+ lflags "--use-preload-plugins"
+            arr+ lflags "--preload-file" "data/font/InterDisplay-SemiBold.otf"
+            arr+ lflags "--preload-file" "data/font/entypo.ttf"
+        fi
+        CC $cflags $lflags -o $ofile $argv
     }
     \ 7 ()
     {
         @ cd "$wd"
         bld-proj-cd "$PKG"
+        pkg "microui" +cflags
+        # pkg "lg" +cflags , +lflags
 
-        # bld-proj-hlinkd "$wd/data"
         gcp -rlf "$wd/data/" "$bwd"
-
         local ofile="$cmd";
         if ((BLD_WEBGL)); then
             ofile="$ofile".html
@@ -110,10 +130,6 @@ pkg\ gfx_demo () {
             arr+ clfags "-DDEMO_IMG=\"./data/img/d5.png\""
         fi
         # bld-proj-target $ofile
-
-        pkg "microui" +cflags
-        # pkg "lg" +cflags , +lflags
-
         CC $cflags $lflags -o $ofile $argv
     }
     # functions

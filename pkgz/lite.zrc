@@ -1,6 +1,8 @@
 
 pkg\ lite () {
     : wd "$PWD"/lite
+    : deps "gfx"
+    # : deps "gfx" "microui" "tcc" "lg"
     __install__ ()
     {
         git clone https://github.com/d4tocchini/lite.git
@@ -26,7 +28,7 @@ pkg\ lite () {
         @ cd src/lib
 
         rm *.o
-        for f in `find lua52 -name "*.c"`; do
+        for f in `find lua54 -name "*.c"`; do
             # $CC -c $cflags $f -o "${f//\//_}.o" &
             CC -c $cflags $f -o "${f//\//_}.o" &
             PIDS+=($!)
@@ -40,7 +42,9 @@ pkg\ lite () {
             fi
         done
 
-        $got_error && echo got_error
+        if [[ $got_error -ne 0 ]]; then
+            echo "got_error!"
+        fi
         return $got_error
     }
     \ build () {
@@ -54,7 +58,6 @@ pkg\ lite () {
         rm -f $OUT
 
         # if [[ $got_error == false ]]; then
-            echo "linking..." $PWD
             CC $wd/src/lib/*.o $lflags $cflags -o $OUT $wd/src/main.c
         # fi
 

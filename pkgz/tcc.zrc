@@ -1,10 +1,15 @@
 
 pkg\ tcc () {
 
-    export TCC_FLAGS="-O2 -r -nostdlib -nostdinc -pthread -Wno-implicit-function-declaration \
+    export TCC_FLAGS="-O3 -r -nostdlib -nostdinc -pthread -Wno-implicit-function-declaration \
+     -fPIC -rdynamic -std=c11 -fdollars-in-identifiers \
+     -Wl,--export-dynamic -Wl,--export-all-symbols \
+     -Wl,--enable-new-dtags \
+     -bench \
 -L${PREFIX}/lib \
 -I${PREFIX}/include \
 -I${PWD} \
+-I./ \
 "
     : wd "${PWD}/tcc"
     __install__ ()
@@ -52,17 +57,17 @@ pkg\ tcc () {
         # if ((OS_MAC)) &&
         #     argv+=--sysincludepaths="${MACOS_SDK_PATH}/usr/include:{B}/include"
             # :${PREFIX}/include:${PREFIX}/lib/tcc/include
-        CC=clang MAKE=$MAKE ./configure --prefix="$PREFIX" $argv
+        MAKE=$MAKE ./configure --prefix="$PREFIX" $argv
     }
     \ make ()
     {
         @ cd
-        CC=clang $MAKE $argv
+        $MAKE $argv
     }
     \ install ()
     {
         @ cd
-        CC=clang $MAKE install $argv
+        $MAKE install $argv
 
         echo "#!/bin/sh" > "$PREFIX"/bin/tccrun
         echo "exec "$PREFIX"/bin/tcc -run \${@}" >> "$PREFIX"/bin/tccrun

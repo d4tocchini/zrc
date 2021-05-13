@@ -6,7 +6,7 @@ export BLD_PREFIX="${BLD_PREFIX}";
 export BLD_DIR="${BLD_DIR:-build}"
 export BLD_PROJ="${BLD_PROJ}";
 export BLD_TGT="${BLD_TGT}"
-export BLD_ENV="${BLD_TGT}";
+export BLD_ENV="${BLD_ENV}";
 #           env build flags below are derived via `bld-env $BLD_ENV`
 export      BLD_DEV=0
 #           graphics build flags
@@ -87,6 +87,18 @@ bld-proj ()
     BLD_PROJ="${1}";
     return 0
 }
+bld-env-log ()
+{
+    echo "BLD_ENV=\"${BLD_ENV}\""
+}
+bld-env-default ()
+{
+    if (( ! $#BLD_ENV )); then
+        bld-env $@
+    else
+        bld-env-log
+    fi
+}
 bld-env ()
 {
     BLD_ENV="${1}";
@@ -125,6 +137,7 @@ bld-env ()
         *-mac-*)     BLD_MAC=10 ;;
         *-linux-*)     BLD_LINUX=1 ;;
     esac
+    bld-env-log
 }
 bld-run ()
 {

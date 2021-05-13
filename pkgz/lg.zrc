@@ -1,7 +1,7 @@
 
 pkg\ lg () {
     : wd "$PWD/lg"
-    : deps "lmdb" "mimalloc" "zlib_ng" "cwpack"
+    : deps "lmdb" "mimalloc" "zlib_ng" "cwpack" "cuuid"
     \ help ()
     {
 
@@ -22,12 +22,19 @@ pkg\ lg () {
     }
     \ +lflags ()
     {
+        echo zzz
+        echo zzz
+        echo zzz
         pkg "zlib_ng" +lflags
         arr+ lflags -pthread -L"$wd" -llemongraph
     }
     \ +cflags ()
     {
+        echo xxxxxx
+        echo xxxxxx
+        echo xxxxxx
         pkg "mimalloc" +cflags
+        # pkg "cwpack" +cflags
         arr+ cflags -I"$wd/lib" -I"$wd/deps/lmdb/libraries/liblmdb" \
             -fPIC -Wunused-variable -Wunused-but-set-variable
             # -O3 -Wall

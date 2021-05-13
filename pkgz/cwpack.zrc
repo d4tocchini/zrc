@@ -9,6 +9,9 @@ pkg\ cwpack () {
     }
     \ +cflags ()
     {
+        echo
+        echo -I"${wd}/src"
+        echo
         arr+ cflags -I"${wd}/src"
     }
 }
