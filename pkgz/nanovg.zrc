@@ -6,6 +6,7 @@ pkg\ nanovg () {
     __install__ ()
     {
         git clone https://github.com/d4tocchini/nanovg
+        @ pull
     }
     __init__ ()
     {
