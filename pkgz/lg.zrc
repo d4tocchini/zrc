@@ -1,7 +1,7 @@
 
 pkg\ lg () {
     : wd "$PWD/lg"
-    : deps "lmdb" "mimalloc" "zlib_ng" "cwpack" "cuuid"
+    : deps "lmdb" "mimalloc" "zlib_ng" "cwpack" "cuuid" "wasm_tools"
     \ help ()
     {
 
@@ -22,21 +22,26 @@ pkg\ lg () {
     }
     \ +lflags ()
     {
-        echo zzz
-        echo zzz
-        echo zzz
-        pkg "zlib_ng" +lflags
-        arr+ lflags -pthread -L"$wd" -llemongraph
+        # pkg "mimalloc" +lflags    
+        pkg "zlib_ng" +lflags        
+            # or...
+                # arr+ lflags "-lz"    
+        arr+ lflags -pthread -L"$wd"
+            # -llemongraph
+    }
+    \ +lflags_webgl ()
+    {
+        # pkg "mimalloc" +lflags
+        arr+ lflags -s USE_ZLIB=1
+        arr+ lflags -pthread -L"$wd"
+            # -llemongraph
     }
     \ +cflags ()
     {
-        echo xxxxxx
-        echo xxxxxx
-        echo xxxxxx
         pkg "mimalloc" +cflags
         # pkg "cwpack" +cflags
         arr+ cflags -I"$wd/lib" -I"$wd/deps/lmdb/libraries/liblmdb" \
-            -fPIC -Wunused-variable -Wunused-but-set-variable
+            # -fPIC -Wunused-variable -Wunused-but-set-variable
             # -O3 -Wall
     }
     \ make ()
@@ -44,30 +49,68 @@ pkg\ lg () {
         @ cd
         CC_ENV $MAKE $argv
     }
+    \ clean () {
+        @ cd
+        # @ make clean
+        rm -rf "build"
+    }
+    \ run ()
+    {
+        @ cd        
+        cd "build"
+        if ((BLD_WEBGL)); then
+            wasm_serve -d "$PWD"
+        else
+            local tgt="$1"
+            shift      
+            time "./$tgt" $@
+        fi          
+    }
     \ test ()
     {
-        @ cd
-        @ compile "tests/test.c" "tests/test" &&
-            time tests/test
+        @ cd        
+        @ compile "$wd/tests/test.c" "test" &&
+            @ run test
     }
     \ bench ()
     {
-        @ cd
-        @ compile "bench/bench.c" "bench/bench" &&
-            time bench/bench
-    }
+        @ cd                
+        @ compile "$wd/bench/bench.c" "bench" &&
+            @ run bench
+    }    
     \ example ()
     {
         @ cd
-        @ compile "examples/example.c" "examples/example" &&
-            time examples/example
+        @ compile "$wd/examples/example.c" "example" &&
+            @ run example
     }
     \ compile ()
     {
+        @ cd        
+        mkdir -p "build"
+        cd "build"
         # [[ "$1" -nt "$2" ]]
+        local out="$2"        
         arr: lflags cflags
-        @ +lflags , +cflags
-        CC $cflags $lflags "$1" -o "$2"
+        @ +cflags
+        if ((BLD_WEBGL)); then
+            @ +lflags_webgl 
+            out="$out".html
+            # arr+ lflags "--shell-file" "$wd/shell.html"
+            arr+ cflags -sFORCE_FILESYSTEM=1 -sPOLYFILL=0 -sWASM_BIGINT=1 
+            
+            # !!!
+            arr+ cflags -DLG_WASM=1
+            # !!!
+            if ((BLD_DEV)); then
+                arr+ cflags -sASSERTIONS=1            
+            fi
+
+        else    
+            @ +lflags
+        fi
+        CC $cflags $lflags "$1" -o "$out"
         return $?
-    }
+    }    
+    
 }

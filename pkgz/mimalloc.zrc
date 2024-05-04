@@ -14,7 +14,7 @@ pkg\ mimalloc () {
     }
     \ +lflags()
     {
-        arr+ lflags -lmimalloc
+        # arr+ lflags -L"${wd}/out/release" -lmimalloc
     }
     \ build ()
     {

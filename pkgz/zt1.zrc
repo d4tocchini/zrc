@@ -1,0 +1,55 @@
+
+pkg\ zt1 () {
+    : wd "$PWD"/zt1
+    __init__ ()
+    {
+        # @ alias
+    }
+    __install__ ()
+    {
+        git clone https://github.com/d4tocchini/ZeroTierOne.git zt1
+        @ pull
+    }
+    \ pull ()
+    {
+        @ cd
+        # git checkout d4
+        git pull
+    }
+    # \ install-if-needed ()
+    # {
+    #     if [[ ! -d "$PREFIX/include/hv" ]]; then
+    #         @ configure
+    #         @ make
+    #         @ make install
+    #     fi
+    # }
+    # \ configure ()
+    # {
+    #     @ cd
+    #     # echo configure
+    #     # --with-protocol --with-nghttp2 --with-gnutls --with-mbedtls
+    #     if ((OS_MAC)) ; then
+    #         CC=clang CXX=clang++ MAKE=gmake ./configure --prefix="$PREFIX" \
+    #             --with-openssl --with-curl --enable-uds --enable-ipv6;
+    #     else
+    #         MAKE=gmake ./configure --prefix="$PREFIX" \
+    #             --with-openssl --with-curl --enable-uds --enable-ipv6;
+    #     fi
+    # }
+    \ clean () {
+        @ cd
+        gmake clean
+    }
+    \ make () {
+        @ cd
+        gmake $argv
+    }
+    \ shutdown () {
+        sudo launchctl unload /Library/LaunchDaemons/com.zerotier.one.plist
+    }
+    # \ uninstnall () {
+    #     # sudo launchctl unload /Library/LaunchDaemons/com.zerotier.one.plist
+    # }
+}
+

@@ -68,4 +68,8 @@ pkg\ lite () {
 
         # CC $cflags $lflags -o lited ./src/main.c
     }
+    \ run() {
+        local OUT=lited
+        "$wd"/${OUT} 
+    }
  }

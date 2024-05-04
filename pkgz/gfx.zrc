@@ -1,7 +1,7 @@
 
 pkg\ gfx () {
     : wd "$PWD"/gfx
-    : deps "sdl2" "nanovg" "nanovg_metal" "stb"
+    : deps "sdl2" "nanovg" "nanovg_metal" "stb" "sdl_gpu"
     __install__ ()
     {
         git clone https://github.com/d4tocchini/gfx.git
@@ -14,7 +14,8 @@ pkg\ gfx () {
     {
         # modz +cflags "sdl2" "nanovg" "nanovg_metal"
         pkg "sdl2"      +cflags
-        pkg "nanovg"       +cflags
+        pkg "nanovg"    +cflags
+        pkg "sdl_gpu"      +cflags
         # bld gfx runtime flags
         arr+ cflags "-DGFX_ENV" "-DGFX_SDL"
         ((BLD_GL)) && {
@@ -61,17 +62,22 @@ pkg\ gfx () {
                 -framework Cocoa
             if ((BLD_GL)); then
                 arr+ lflags \
-                    -framework OpenGL \
-                    -lGLEW
+                    -framework OpenGL 
+                    #`pkg-config --libs glew`
             fi
         elif ((BLD_GL)); then
             arr+ lflags \
-                    -lGL -lGLU -lGLEW
+                    -lGL -lGLU 
+                    # -lGLEW
         fi
     }
     \ build ()
     {
-        echo hello $1
+        arr: cflags lflags
+        pkg "gfx" +cflags , +lflags
+        @ cd "$wd"
+        bld-proj-cd "$PKG"
+        CC -shared $cflags $lflags -o gfx.dso
     }
     \ install ()
     {

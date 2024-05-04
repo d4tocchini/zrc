@@ -5,18 +5,37 @@ pkg\ sx () {
     {
         git clone https://github.com/d4tocchini/sx.git
     }
-    \ build()
+    \ +cflags ()
+    {
+        arr+ cflags -I"$wd"/include
+    }
+    \ +lflags ()
+    {
+        arr+ lflags -L"$wd"/build -lsx
+    }
+    \ clean()
     {
         rm -rf ./build
     }
     \ build()
     {
         @ cd
-        mkdir build
+        mkdir -p build
         cd build
         # TODO:
+        #   Defines some options like SX_NO_APP and SX_NO_GFX to skip building gfx.c and app.c
+        #   Add 'compat' include directory based on platform:
+        #       msvc (windows): //include/compat/msvc
+        #       ios: //include/compat/ios
+        #       osx: //include/compat/osx
+        #   Links libraries:
+        #       linux: dl pthread
+        #       linux (+ gfx.c): gl glew
+        #       lunux (+ app.c): x11
+        #       windows (+ gfx.c): dxgi d3d11
+
         # if [[ "$TRAVIS_OS_NAME" != "windows" ]]; then
-            cmake .. -DCMAKE_BUILD_TYPE=Release;
+            cmake .. -DCMAKE_BUILD_TYPE=Release -DSX_SHARED_LIB=OFF;
             make;
         # fi
         # if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
@@ -25,11 +44,19 @@ pkg\ sx () {
         #     cmake --build . --config Release --target ALL_BUILD -- -verbosity:m;
         # fi
     }
+    \ install()
+    {
+        # TODO:
+        # build/libsx.a
+        # build/libsx.dylib
+        # include/* ?
+    }
     \ test()
     {
         @ cd
         if [[ $1 ]] ; then
             ./build/tests/test-${1}
+            ls ./tests
         else
             echo "pkg sx test {jobs, ...}"
             echo

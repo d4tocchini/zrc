@@ -1,0 +1,55 @@
+
+pkg\ msdf_atlas () {
+    : wd "$PWD"/msdf_atlas
+    : deps "freetype2"
+    # __init__ ()
+    # {
+    # }
+    __install__ ()
+    {
+        git clone https://github.com/d4tocchini/msdf-atlas-gen msdf_atlas
+        @ pull
+        git submodule update --init
+    }
+    \ pull ()
+    {
+        @ cd
+        
+        # TODO:
+        # git checkout d4
+        
+        git pull
+    }
+    \ +lflags () {
+        # if ((! BLD_WEBGL)) ; then
+        #     arr+ lflags \
+        #     `pkg-config --libs SDL2` \
+        #     "-lm"
+        #     #"-lSDL2_image"
+        # fi
+    }
+    \ +cflags () {
+        # if ((BLD_WEBGL)) ; then
+        #     arr+ cflags -s USE_SDL=2
+        #     #-s USE_SDL_IMAGE=2
+        # else
+        #     arr+ cflags `pkg-config --cflags SDL2`
+
+        # fi
+
+    }
+    \ install-if-needed ()
+    {
+        @ make install
+    }
+    \ clean ()
+    {
+        @ make clean
+    }    
+    \ make () {
+        @ cd
+        # echo build
+        gmake $@
+    }
+}
+

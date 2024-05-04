@@ -1,0 +1,16 @@
+pkg\ wasm_tools () {
+    : wd "${PWD}/wasm_tools"    
+    __install__ ()
+    {
+        
+    }
+    __init__ ()
+    {
+    }
+    \ install ()
+    {
+        cd "$wd"
+        ./install.sh
+
+    }   
+}

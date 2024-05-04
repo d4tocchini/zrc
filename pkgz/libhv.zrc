@@ -1,0 +1,136 @@
+
+# TODO: sdl2_image https://www.libsdl.org/projects/SDL_image/
+
+pkg\ libhv () {
+    : wd "$PWD"/libhv
+    __init__ ()
+    {
+        @ alias
+    }
+    __install__ ()
+    {
+        git clone https://github.com/d4tocchini/libhv.git
+        @ pull
+    }
+    \ pull ()
+    {
+        @ cd
+        # git checkout d4
+        git pull
+    }
+    \ +lflags () {
+        # if ((! BLD_WEBGL)) ; then
+        #     arr+ lflags \
+        #     `pkg-config --libs SDL2` \
+        #     "-lm"
+        #     #"-lSDL2_image"
+        # fi
+    }
+    \ +cflags () {
+        # if ((BLD_WEBGL)) ; then
+        #     arr+ cflags -s USE_SDL=2
+        #     #-s USE_SDL_IMAGE=2
+        # else
+        #     arr+ cflags `pkg-config --cflags SDL2`/..
+        # fi
+    }
+    \ install-if-needed ()
+    {
+        if [[ ! -d "$PREFIX/include/hv" ]]; then
+            @ configure
+            @ make
+            @ make install
+        fi
+    }
+    \ configure ()
+    {
+        @ cd
+
+        # http2
+            # brew install libnghttp2
+            # sudo apt install libnghttp2-dev # ubuntu
+
+        # openssl
+            # brew install openssl@3
+            # sudo apt install openssl libssl-dev # ubuntu
+            
+            # A CA file has been bootstrapped using certificates from the system
+            # keychain. To add additional certificates, place .pem files in
+            #   /opt/homebrew/etc/openssl@3/certs
+
+            # and run
+            #   /opt/homebrew/opt/openssl@3/bin/c_rehash
+
+            # openssl@3 is keg-only, which means it was not symlinked into /opt/homebrew,
+            # because macOS provides LibreSSL.
+
+            # If you need to have openssl@3 first in your PATH, run:
+            #   echo 'export PATH="/opt/homebrew/opt/openssl@3/bin:$PATH"' >> ~/.zshrc
+
+            # For compilers to find openssl@3 you may need to set:
+            #   export LDFLAGS="-L/opt/homebrew/opt/openssl@3/lib"
+            #   export CPPFLAGS="-I/opt/homebrew/opt/openssl@3/include"
+
+        # echo configure
+        # --with-protocol --with-nghttp2 --with-gnutls --with-mbedtls            
+            # modules:
+            #   --with-protocol       compile protocol module?        (DEFAULT: $WITH_PROTOCOL)
+            #   --with-evpp           compile evpp module?            (DEFAULT: $WITH_EVPP)
+            #   --with-http           compile http module?            (DEFAULT: $WITH_HTTP)
+            #   --with-http-client    compile http client module?     (DEFAULT: $WITH_HTTP_CLIENT)
+            #   --with-http-server    compile http server module?     (DEFAULT: $WITH_HTTP_SERVER)
+            #   --with-mqtt           compile mqtt module?            (DEFAULT: $WITH_MQTT)
+            # features:
+            #   --enable-uds          enable Unix Domain Socket?      (DEFAULT: $ENABLE_UDS)
+            #   --enable-windump      enable Windows coredump?        (DEFAULT: $ENABLE_WINDUMP)
+            # dependencies:
+            #   --with-curl           compile with curl?              (DEFAULT: $WITH_CURL)
+            #   --with-nghttp2        compile with nghttp2?           (DEFAULT: $WITH_NGHTTP2)
+            #   --with-openssl        compile with openssl?           (DEFAULT: $WITH_OPENSSL)
+            #   --with-gnutls         compile with gnutls?            (DEFAULT: $WITH_GNUTLS)
+            #   --with-mbedtls        compile with mbedtls?           (DEFAULT: $WITH_MBEDTLS)
+            # rudp:
+            #   --with-kcp            compile with kcp?               (DEFAULT: $WITH_KCP)
+        
+        # if ((OS_MAC)) ; then            
+            
+            # CFLAGS="-I/opt/homebrew/opt/openssl@3/include `pkg-config --cflags libnghttp2`"
+
+            # LDFLAGS="-L/opt/homebrew/opt/openssl@3/lib `pkg-config --libs libnghttp2`" \
+            # CPPFLAGS=${CFLAGS} \
+
+            CC=${CC} CXX=${CXX} MAKE=gmake \
+            ./configure --prefix="$PREFIX" \
+                --with-zts --with-openssl --with-curl \
+                --enable-uds --enable-ipv6 --with-nghttp2 
+    }
+    \ clean () {
+        @ cd
+        gmake clean
+    }
+    \ make () {
+        @ cd
+        # TODO: Fix SSL flags...
+        
+        # LDFLAGS="-L/usr/local/opt/openssl/lib" 
+        # CFLAGS="-I/usr/local/opt/openssl/include" 
+
+        # `pkg-config --libs libnghttp2`
+        # `pkg-config --cflags libnghttp2`
+        CFLAGS="-I/opt/homebrew/opt/openssl@3/include `pkg-config --cflags libnghttp2` -I/Users/d4/proj/pkg"
+        
+        CC=${CC} CXX=${CXX} MAKE=gmake \
+        LDFLAGS="-L/opt/homebrew/opt/openssl@3/lib `pkg-config --libs libnghttp2`" \
+        CPPFLAGS=${CFLAGS} \
+            gmake -j`nproc` $argv
+    }
+
+    \ install () {
+        @ make install
+    }
+
+    \ uninstall () {
+        @ make uninstall
+    }
+}
+

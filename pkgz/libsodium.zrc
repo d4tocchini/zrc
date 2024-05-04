@@ -1,0 +1,71 @@
+
+# https://doc.libsodium.org/installation
+
+# https://github.com/jedisct1/libsodium/tree/master/dist-build
+
+# to prevent unwanted optimizations, link-time optimization (LTO) should not be used
+# do not enable sanitizers (such as -fsanitize=signed-integer-overflow)
+# On Linux, if the process hangs at the make check step, your system PRG may not have been properly seeded. Please refer to the notes in the "Usage" section for ways to address this.
+# Also, on Linux, like any manually installed library, running the ldconfig command is required to make the dynamic linker aware of the new library.
+
+pkg\ libsodium () {
+    : wd "$PWD"/libsodium
+    __init__ ()
+    {
+        @ alias
+    }
+    __install__ ()
+    {
+        git clone https://github.com/jedisct1/libsodium --branch stable     
+        @ pull   
+        # NOTE: docs recommend dl https://download.libsodium.org/libsodium/releases/LATEST.tar.gz
+    }
+    \ pull ()
+    {
+        @ cd
+        git pull
+    }
+    \ +lflags () {
+        if ((BLD_WEBGL)) ; then
+            arr+ lflags "-lsodium"            
+        else
+            arr+ lflags `pkg-config --libs libsodium` 
+        fi
+    }
+    \ +cflags () {
+        if ((! BLD_WEBGL)) ; then
+            arr+ cflags `pkg-config --cflags libsodium`
+        fi
+    }
+    \ build ()
+    {
+        @ cd
+
+        # NOTE: nproc from coreutils
+        MAKE_ARGS="-j`nproc --all`"
+
+        MACOS_VERSION_MIN=10.15
+        export CFLAGS="-Ofast -arch `arch` -mmacosx-version-min=${MACOS_VERSION_MIN}"
+        export LDFLAGS="-arch `arch` -mmacosx-version-min=${MACOS_VERSION_MIN}"
+
+        # export CFLAGS="-mmacosx-version-min=${MACOS_VERSION_MIN} -Ofast"
+        # export LDFLAGS="-mmacosx-version-min=${MACOS_VERSION_MIN}"
+
+        CC=${CC} ./configure --prefix="$PREFIX" --enable-minimal &&            
+        make ${MAKE_ARGS} && 
+        make ${MAKE_ARGS} check &&
+        make ${MAKE_ARGS} install
+        # NOTE: `sudo make install` to install in sys PREFIX`
+
+        export CFLAGS=""
+        export LDFLAGS=""
+    }
+    \ clean ()
+    {
+        @ cd
+        MAKE_ARGS="-j`nproc --all`"
+        make ${MAKE_ARGS} clean
+    }
+}
+
+

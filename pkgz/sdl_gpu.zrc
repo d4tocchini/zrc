@@ -1,0 +1,62 @@
+
+pkg\ sdl_gpu () {
+    : wd "$PWD"/sdl_gpu
+    __init__ ()
+    {
+        @ alias
+    }
+    __install__ ()
+    {
+        git clone https://github.com/d4tocchini/sdl-gpu.git sdl_gpu
+        @ pull
+    }
+    \ pull ()
+    {
+        @ cd
+        # git checkout d4
+        git pull
+    }
+    \ +lflags () {
+    }
+    \ +cflags () {
+        arr+ cflags -I"$wd/include" 
+        # if single source via includes
+    }
+    \ install-if-needed ()
+    {
+        # if [[ ! -d "$PREFIX/include/SDL2" ]]; then
+        #     @ configure
+        #     @ make
+        #     @ install
+        # fi
+    }
+    \ configure ()
+    {
+        # @ cd
+        # # echo configure
+        # if ((OS_MAC)) ; then
+        #     ./autogen.sh
+        #     CC=clang CXX=clang++ MAKE=gmake ./configure --prefix="$PREFIX" --without-x;
+        # else
+        #     MAKE=gmake ./configure --prefix="$PREFIX";
+        # fi
+    }
+    \ build_demo_nanovg () {
+        @ cd
+        arr: cflags lflags
+        pkg "gfx" +cflags , +lflags
+        bld-proj-cd "$PKG"
+        gcp -rlf "$wd/demos/data/" "$bwd"
+        local ofile="demo_nanovg";
+        if ((BLD_WEBGL)); then
+            ofile="$ofile".html
+            # arr+ cflags "-sFULL_ES3=1"
+            arr+ lflags "--shell-file" "$wd/demos/data/shell.html"
+            # arr+ lflags "--use-preload-plugins"
+            arr+ lflags "--preload-file" "data/test3.png"
+        fi
+        # echo build
+        CC $cflags $lflags  -o "$ofile" "$wd/demos/nanovg/main.c"
+    }
+}
+

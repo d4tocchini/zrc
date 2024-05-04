@@ -12,6 +12,6 @@
 function log: ()
 {
 	echo "\n:${PWD}\n:▶︎ $@" >&2
-	time "$@"
+	time $argv
 	return $?
 }

@@ -1,0 +1,11 @@
+https://github.com/yt-dlp/yt-dlp#installation
+
+install
+
+YTDL_PATH=/usr/local/bin/ytdl
+sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o "${YTDL_PATH}"
+sudo chmod a+rx "${YTDL_PATH}"
+
+update
+
+ yt-dlp -U

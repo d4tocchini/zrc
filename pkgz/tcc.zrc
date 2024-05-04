@@ -1,20 +1,33 @@
 
+# TODO: arm64 
+    # bug https://lists.nongnu.org/archive/html/tinycc-devel/2022-08/msg00009.html
+    # bug https://lists.nongnu.org/archive/html/tinycc-devel/2022-07/msg00033.html
+    # bg https://maskray.me/blog/2021-08-29-all-about-global-offset-table
+    # ideas https://stackoverflow.com/questions/62755500/mach-o-arm64-accessing-data-seciont
+        # https://stackoverflow.com/questions/56985859/ios-arm64-syscalls/57092866#57092866
+
+
 pkg\ tcc () {
 
-    export TCC_FLAGS="-O3 -r -nostdlib -nostdinc -pthread -Wno-implicit-function-declaration \
-     -fPIC -rdynamic -std=c11 -fdollars-in-identifiers \
-     -Wl,--export-dynamic -Wl,--export-all-symbols \
-     -Wl,--enable-new-dtags \
-     -bench \
+    export TCC_FLAGS="-O3  -pthread -Wno-implicit-function-declaration \
+-rdynamic -std=c11 -fdollars-in-identifiers \
+-Wl,--export-dynamic -Wl,--export-all-symbols \
+-Wl,--enable-new-dtags \
 -L${PREFIX}/lib \
 -I${PREFIX}/include \
 -I${PWD} \
 -I./ \
-"
+-nostdlib" # -fpic -nostdinc -bench
+# -r          generate (relocatable) object file
+# -rdynamic   export all global symbols to dynamic linker
+# create library: tcc -ar [rcsv] lib.a files
+# Predefined macros: tcc -E -dM - < /dev/null
+
     : wd "${PWD}/tcc"
     __install__ ()
     {
         git clone https://github.com/d4tocchini/tcc.git
+        #TODO: add https://github.com/TinyCC/tinycc
         pushd -q tcc
             git remote add up git://repo.or.cz/tinycc.git
         popd
@@ -23,6 +36,7 @@ pkg\ tcc () {
     \ pull ()
     {
         @ cd
+        # NOTE: checkout up-mob then pull for upstream
         git checkout mob
         git pull
     }
@@ -57,7 +71,29 @@ pkg\ tcc () {
         # if ((OS_MAC)) &&
         #     argv+=--sysincludepaths="${MACOS_SDK_PATH}/usr/include:{B}/include"
             # :${PREFIX}/include:${PREFIX}/lib/tcc/include
-        MAKE=$MAKE ./configure --prefix="$PREFIX" $argv
+        
+
+#TODO: UNTIL TCC SUPPORTS M1 (soon) use --cpu=x86_64
+#       --extra-cflags="-arch x86_64" --extra-ldflags="-arch x86_64" 
+#       https://lists.nongnu.org/archive/html/tinycc-devel/2021-07/msg00015.html
+#       https://lists.nongnu.org/archive/html/tinycc-devel/2021-07/msg00010.html
+#       https://lists.nongnu.org/archive/html/tinycc-devel/2022-08/msg00009.html
+#   Added!!
+#       https://lists.nongnu.org/archive/html/tinycc-devel/2022-12/msg00003.html
+#           --config-new_macho
+        # For support of apple 13.0 (Ventura) I needed to add another option 
+        # '--config-codesign'.
+        # This was needed because on this target executables needs to be signed.
+        # This is done by running 'codesign -f -s - executeble' after it is created.
+
+        # MAKE=$MAKE ./configure --prefix="$PREFIX" $argv
+        MAKE=$MAKE ./configure --prefix="$PREFIX" \
+             --config-new_macho \
+             $argv
+             # --cpu=x86_64 \             
+            # --config-bcheck=no --config-backtrace=no --cc=clang  
+
+
     }
     \ make ()
     {
@@ -91,6 +127,7 @@ pkg\ tcc () {
     {
         @ cd
         rm -f "./config.mk"
+        rm -f "$PREFIX/bin/tccrun"
         $MAKE clean $argv
     }
 }

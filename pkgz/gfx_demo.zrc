@@ -33,9 +33,9 @@
 
 pkg\ gfx_demo () {
     : wd "$PWD/gfx_demo"
-    : deps "gfx" "microui" "tcc" "lg"
+    : deps "gfx" "microui" "tcc" "lg" "msdf_atlas"
 
-    : TARGETS "1 2 3 4 5 6 7"
+    : TARGETS "1 2 3 4 5 6 7 8"
     : 1 "$wd/1_hello.c"
     : 2 "$wd/2_nvg.c"
     : 3 "$wd/3_r.c"
@@ -43,6 +43,7 @@ pkg\ gfx_demo () {
     : 5 "$wd/5_lg.c"
     : 6 "$wd/6_tcc.c"
     : 7 "$wd/7_via.c"
+    : 8 "$wd/8_site.c"
     __init__ ()
     {
         @ alias
@@ -55,7 +56,7 @@ pkg\ gfx_demo () {
     {
         arr: cflags lflags
         pkg "gfx" +cflags , +lflags
-        @proto make $argv;
+        @proto make $argv;        
     }
     \ 1 ()
     {
@@ -67,14 +68,15 @@ pkg\ gfx_demo () {
     {
         @ cd
         bld-proj-cd "$PKG"
-        CC $cflags $lflags -o $cmd $argv
+        CC $cflags $lflags `pkg-config --cflags glfw3` -o $cmd $argv
         pkg "nanovg" cd
             gcp -rlf "./example/data/" "$bwd"
     }
     \ 3 ()
     {
-        @ cd
+        @ cd        
         bld-proj-cd "$PKG"
+        gcp -rlf "$wd/data/" "$bwd"
         pkg "microui" +cflags
         CC $cflags $lflags -o $cmd $argv
     }
@@ -82,6 +84,7 @@ pkg\ gfx_demo () {
     {
         @ cd
         bld-proj-cd "$PKG"
+        gcp -rlf "$wd/data/" "$bwd"
         pkg "microui" +cflags
         CC $cflags $lflags -o $cmd $argv
     }
@@ -89,9 +92,57 @@ pkg\ gfx_demo () {
     {
         @ cd
         bld-proj-cd "$PKG"
-        pkg "microui" +cflags
-        pkg "lg" +cflags , +lflags
-        CC $cflags $lflags -o $cmd $argv
+        pkg "microui" +cflags        
+        gcp -rlf "$wd/data/" "$bwd"
+        local ofile="$cmd";
+        if ((BLD_WEBGL)); then
+            # https://www.smashingmagazine.com/2019/04/webassembly-speed-web-app/
+            # https://stackoverflow.com/questions/12499171/can-i-set-a-header-with-pythons-simplehttpserver
+            # Cross-Origin-Opener-Policy: same-origin
+            # Cross-Origin-Embedder-Policy: require-corp
+            arr+ cflags -sFORCE_FILESYSTEM=1 -sPOLYFILL=0 -sWASM_BIGINT=1
+            # -sMEMORY64=1 
+            
+            # -sASSERTIONS                 
+
+            # --proxy-to-worker
+            # [link] Runs the main application code in a worker, proxying events to it and output from it. If emitting HTML, this emits a .html file, and a separate .js file containing the JavaScript to be run in a worker. If emitting JavaScript, the target file name contains the part to be run on the main thread, while a second .js file with suffix “.worker.js” will contain the worker portion.
+
+            # -sOPTIONS see https://github.com/emscripten-core/emscripten/blob/main/src/settings.js
+                # INITIAL_MEMORY
+                # MEMORY64
+                # ALLOW_TABLE_GROWTH ?? for dlopen??
+            # -sGL_TRACK_ERRORS=0
+                # GL_SUPPORT_EXPLICIT_SWAP_CONTROL
+                # USE_WEBGPU
+                # STB_IMAGE
+            # -sDISABLE_EXCEPTION_CATCHING -fno-exceptions -fno-rtti
+                # MAIN_MODULE
+                # SIDE_MODULE
+                # PROXY_TO_WORKER
+                # PROXY_TO_PTHREAD
+                    # OFFSCREENCANVASES_TO_PTHREAD
+                    # OFFSCREENCANVAS_SUPPORT
+                    # OFFSCREEN_FRAMEBUFFER
+                # WASM_BIGINT
+                # FETCH
+                # WASMFS
+
+
+            pkg "lg" +cflags , +lflags_webgl
+            ofile="$ofile".html                        
+
+            arr+ lflags "--shell-file" "$wd/shell.html"
+            # arr+ lflags "--use-preload-plugins"
+            
+            # arr+ lflags "--preload-file" "data/.lg/graph"
+            arr+ lflags "--preload-file" "data/font/InterDisplay-SemiBold.otf"
+            arr+ lflags "--preload-file" "data/font/entypo.ttf"
+            arr+ lflags "--preload-file" "data/font/entypo.ttf"
+        else
+            pkg "lg" +cflags , +lflags
+        fi
+        CC $cflags $lflags -o $ofile $argv
     }
     \ 6 ()
     {
@@ -132,6 +183,58 @@ pkg\ gfx_demo () {
         # bld-proj-target $ofile
         CC $cflags $lflags -o $ofile $argv
     }
+    \ 8 ()
+    {
+        @ cd "$wd"
+        bld-proj-cd "$PKG"
+        # pkg "microui" +cflags
+        # pkg "lg" +cflags , +lflags
+
+        gcp -rlf "$wd/data/" "$bwd"        
+        
+        # pushd data/views
+        # CC -shared -o header.so header.c
+        # popd
+        
+        local ofile="$cmd";
+        if ((BLD_WEBGL)); then
+            gcp -rlf "$wd/serviceworker.js" "$bwd/serviceworker.js"
+            touch "$bwd/../.nojekyll"
+            
+            ofile="$ofile".html            
+            rm -f "$ofile" 
+
+            # https://emsettings.surma.technology/#OFFSCREENCANVAS_SUPPORT
+            arr+ cflags -sFORCE_FILESYSTEM=1 -sPOLYFILL=0 -sWASM_BIGINT=1
+            arr+ lflags -sENVIRONMENT='web,worker' 
+            
+            #  for iOS
+            arr+ cflags -sMAXIMUM_MEMORY=1073741824 -sINITIAL_MEMORY=33554432
+                # -sINITIAL_MEMORY=1073741824
+                # -sMAXIMUM_MEMORY=4294967296
+            
+            # arr+ lflags -sRETAIN_COMPILER_SETTINGS=1 
+                #Runtime.getCompilerSetting and emscripten_get_compiler_setting.
+                # -sFULL_ES3=1 #webview,,node'
+            arr+ lflags -sUSE_PTHREADS=1 
+            # -sOFFSCREENCANVAS_SUPPORT=1 
+            # -sPROXY_TO_PTHREAD=1
+            # arr+ lflags -sOFFSCREENCANVAS_SUPPORT=1 
+            # -sPROXY_TO_PTHREAD=1 -sOFFSCREEN_FRAMEBUFFER=1
+            # arr+ lflags "-sOFFSCREENCANVASES_TO_PTHREAD=.emscripten" -sDISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1
+            arr+ lflags -sFETCH=1
+            arr+ lflags "--shell-file" "$wd/shell.html" # TODO: recover from ctx loss http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+            # arr+ lflags "--use-preload-plugins"
+            # arr+ lflags "--preload-file" "data/font/InterDisplay-SemiBold.otf"
+            # arr+ lflags "--preload-file" "data/font/entypo.ttf"
+            arr+ lflags "--preload-file" "./data/img/logo.png"
+            arr+ lflags "--preload-file" "./data/font/AG/AkzidenzGrotesk-Bold.otf"
+            # arr+ clfags "-DDEMO_IMG=\"./data/img/d5.png\""
+        fi
+        # bld-proj-target $ofile
+        
+        CC $cflags $lflags -o $ofile $argv
+    }
     # functions
     \ build ()
     {
@@ -150,3 +253,13 @@ pkg\ gfx_demo () {
         rm -rf `@ : TARGETS`
     }
 }
+
+# mkdir -p "data/font.msdf"
+# msdf_atlas -font      "data/font/AG/AkzidenzGrotesk-Bold.otf" -fontname AG-Bold  -type msdf -threads 0 \
+#            -imageout  "data/font.msdf/AG-Bold.png" -format png \
+#            -json      "data/font.msdf/AG-Bold.json" \
+#            -csv       "data/font.msdf/AG-Bold.csv" \
+#            -shadronpreview "data/font.msdf/AG-Bold.sample.csv"
+           
+# brew install fontforge
+# brew install --cask fontforge

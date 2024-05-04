@@ -1,0 +1,50 @@
+
+pkg\ node_casm () {
+    : wd "$PWD/node_casm"
+    : deps "gfx" "microui" "sos"
+    __install__ ()
+    {
+        git clone https://github.com/d4tocchini/node-casm.git node_casm
+    }
+    \ build ()
+    {
+
+        @ cd
+        SRC="./casm.c"
+        OUT="./build/casm.node"
+
+        arr: cflags lflags
+        pkg "gfx" +cflags , +lflags
+        pkg "sos" +cflags , +lflags
+
+        # TODO:
+        # PATH="./node_modules/.bin:$PATH" \
+        echo
+        echo $PWD
+        echo $wd
+        echo
+        CC="./node_modules/.bin/node-gypcc" \
+            CC --silent $cflags $lflags -o $OUT $SRC \
+                -Wno-incompatible-pointer-types \
+                -Wno-int-conversion -w -Wno-error=deprecated-declarations
+
+        # bld-proj-cd "$PKG"
+        # TODO:
+    }
+    \ test ()
+    {
+        @ cd
+        npm run test
+    }
+    \ demo ()
+    {
+        @ cd
+        npm run electron
+    }
+    \ clean ()
+    {
+        @ cd
+        rm -rf "./build"
+        rm -f "./binding.gyp"
+    }
+}

@@ -40,4 +40,10 @@ pkg\ lmdb () {
         echo $PWD
         $MAKE $argv
     }
+    \ install-if-needed ()
+    {
+        if [[ ! -f "$PREFIX/include/lmdb.h" ]]; then        
+            @ build
+        fi
+    }
 }

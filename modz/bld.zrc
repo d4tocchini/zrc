@@ -64,6 +64,8 @@ bld-help ()
         bld-proj hello-world
         bld-cd
         # ==> cd "/usr/local/hello-world/webgl2"
+
+        bld -p gfx_demo run 6
 ===
 }
 

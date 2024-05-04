@@ -30,11 +30,15 @@ pkg\ freetype2 () {
     }
     \ install-if-needed ()
     {
-        if [[ ! -f "$PREFIX/bin/tccrun" ]]; then
+        if [[ ! -f "$PREFIX/include/freetype2/ft2build.h" ]]; then
             @ configure
             @ make
-            @ make install
+            @ install
         fi
+    }
+    \ uninstall ()
+    {
+        rm -f "$PREFIX/include/freetype2/ft2build.h" 
     }
     \ configure () {
         @ cd

@@ -1,6 +1,22 @@
 
 # TODO: sdl2_image https://www.libsdl.org/projects/SDL_image/
 
+# macOS 12 Monterey - odd/broken OpenGL VSync behavior #4918 https://github.com/libsdl-org/SDL/issues/4918
+
+# Switching to a multi-window SDL application on macOS (especially in fullscreen) always shows the last window created, and not the last focused window #3954
+
+# Creating window from SDL_CreateWindowFrom does not fire internal view events (e.g. resetCursorRects) on OS X #3748
+
+# Information about the cause of SDL_QUIT event requested #2348
+
+# resizing a window on a mac via SDL_SetWindowSize isn't guaranteed to give you the requested dimensions, and SDL data gets out of sync (+patch) #3217
+#   If I call SDL_SetWindowSize on a window that wasn't created with the SDL_WINDOW_RESIZABLE flag, it seems to use my chosen size no matter what. If I call SetWindowSize on a window without that flag, the OS resizes my window to fit in the status bar, SDL_GetWindowSize immediately gives back the updated size, and I also get a resize event which gives the updated size as well.
+
+# Weird behaviors regarding window resizes and the window surface #886
+
+
+
+
 pkg\ sdl2 () {
     : wd "$PWD"/SDL2
     __init__ ()
@@ -9,13 +25,17 @@ pkg\ sdl2 () {
     }
     __install__ ()
     {
-        git clone https://github.com/d4tocchini/SDL2.git
+        # git clone https://github.com/d4tocchini/SDL2.git
+        git clone https://github.com/d4tocchini/sdl.git SDL2
         @ pull
     }
     \ pull ()
     {
         @ cd
-        git checkout d4
+        
+        # TODO:
+        # git checkout d4
+        
         git pull
     }
     \ +lflags () {
@@ -31,7 +51,8 @@ pkg\ sdl2 () {
             arr+ cflags -s USE_SDL=2
             #-s USE_SDL_IMAGE=2
         else
-            arr+ cflags `pkg-config --cflags SDL2`/..
+            arr+ cflags `pkg-config --cflags SDL2`
+
         fi
 
     }
@@ -40,7 +61,7 @@ pkg\ sdl2 () {
         if [[ ! -d "$PREFIX/include/SDL2" ]]; then
             @ configure
             @ make
-            @ install
+            @ make install
         fi
     }
     \ configure ()

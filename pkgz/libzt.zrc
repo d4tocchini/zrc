@@ -1,0 +1,86 @@
+
+# TODO: sdl2_image https://www.libsdl.org/projects/SDL_image/
+
+pkg\ libzt () {
+    : wd "$PWD"/libzt
+    __init__ ()
+    {
+        @ alias
+    }
+    __install__ ()
+    {
+        git clone https://github.com/d4tocchini/libzt.git
+        @ pull
+        @ cd
+        git submodule update --init
+    }
+    \ pull ()
+    {
+        @ cd
+        # git checkout d4
+        git pull
+    }
+    \ +lflags () {
+        # if ((! BLD_WEBGL)) ; then
+        #     arr+ lflags \
+        #     `pkg-config --libs SDL2` \
+        #     "-lm"
+        #     #"-lSDL2_image"
+        # fi
+    }
+    \ +cflags () {
+        # if ((BLD_WEBGL)) ; then
+        #     arr+ cflags -s USE_SDL=2
+        #     #-s USE_SDL_IMAGE=2
+        # else
+        #     arr+ cflags `pkg-config --cflags SDL2`/..
+        # fi
+    }
+    \ install ()
+    {
+        @ cd
+        ./build.sh host-install "release"
+        # /usr/local/include/ZeroTierSockets.h
+        # /usr/local/lib/libzt.dylib
+        # /usr/local/lib/libzt.dylib
+    }
+    \ install_debug ()
+    {
+        @ cd
+        ./build.sh host-install "debug"
+        # /usr/local/include/ZeroTierSockets.h
+        # /usr/local/lib/libzt.dylib
+        # /usr/local/lib/libzt.dylib
+    }
+    # \ configure ()
+    # {
+    #     @ cd
+    #     # echo configure
+    #     # --with-protocol --with-nghttp2 --with-gnutls --with-mbedtls
+    #     if ((OS_MAC)) ; then
+    #         CC=clang CXX=clang++ MAKE=gmake ./configure --prefix="$PREFIX" \
+    #             --with-openssl --with-curl --enable-uds --enable-ipv6;
+    #     else
+    #         MAKE=gmake ./configure --prefix="$PREFIX" \
+    #             --with-openssl --with-curl --enable-uds --enable-ipv6;
+    #     fi
+    # }
+    \ test () {
+        @ cd
+        # ./build.sh test
+        ./build.sh test-c
+    }
+    \ clean () {
+        @ cd
+        ./build.sh clean
+    }
+    \ build () {
+        @ cd
+        ./build.sh host "release"
+    }
+    \ build_debug () {
+        @ cd
+        ./build.sh host "debug"
+    }
+}
+

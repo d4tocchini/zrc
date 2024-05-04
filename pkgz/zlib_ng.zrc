@@ -1,4 +1,6 @@
 
+# wasm support coming... https://github.com/zlib-ng/zlib-ng/pull/1329
+
 pkg\ zlib_ng () {
     : wd "$PWD/zlib_ng"
     __install__ ()
@@ -12,14 +14,13 @@ pkg\ zlib_ng () {
         # arr+ lflags -lz -pthread -llmdb
     }
     \ +cflags ()
-    {
-        # arr+ cflags -I"$wd/lib" -I"$wd/deps/lmdb/libraries/liblmdb" \
-        #     -fPIC -Wunused-variable -Wunused-but-set-variable
+    {        
     }
     \ configure ()
     {
         @ cd
-        ./configure --zlib-compat --native --static --prefix="$PREFIX" $argv
+        CFLAGS="-O4" prefix="$PREFIX" ./configure --zlib-compat --prefix="$PREFIX" $argv
+        # --native 
     }
     \ build ()
     {

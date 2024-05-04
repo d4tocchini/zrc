@@ -1,0 +1,36 @@
+
+pkg\ sos () {
+    : wd "$PWD"/sos
+    : deps "sx" "tcc" "lg"
+    __install__ ()
+    {
+        # git clone https://github.com/d4tocchini/supra.git
+    }
+    \ +cflags ()
+    {
+        pkg "sx"      +cflags
+        pkg "tcc"     +cflags
+        # pkg "lg"      +cflags
+    }
+    \ +lflags ()
+    {
+        pkg "sx"      +lflags
+        pkg "tcc"     +lflags
+        # pkg "lg"      +lflags
+    }
+    \ build ()
+    {
+        echo hello $1
+    }
+    \ install ()
+    {
+        echo "TODO..."
+    }
+    \ test_avl ()
+    {
+        @ cd "test"
+        rm -f ./avl_test
+        CC -I../../ -I./ -o avl_test "avl_test.c"
+        time ./avl_test
+    }
+}
