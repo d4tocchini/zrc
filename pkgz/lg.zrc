@@ -1,4 +1,7 @@
 
+# LG_BRANCH="lg-d4"
+LG_BRANCH="lg-d4-wip"
+
 pkg\ lg () {
     : wd "$PWD/lg"
     : deps "lmdb" "mimalloc" "zlib_ng" "cwpack" "cuuid" "wasm_tools"
@@ -17,7 +20,7 @@ pkg\ lg () {
     }
     \ pull ()
     {
-        git checkout lg-d4
+        git checkout $LG_BRANCH
         git pull
     }
     \ +lflags ()
